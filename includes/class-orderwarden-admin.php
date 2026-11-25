@@ -299,7 +299,7 @@ class OrderWarden_Admin {
 	 */
 	private static function logo() {
 		?>
-		<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+		<svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
 			<path d="M16 2.5 4.5 6.8v8.4c0 7.1 4.9 12.4 11.5 14.3 6.6-1.9 11.5-7.2 11.5-14.3V6.8L16 2.5Z" fill="#136f4d"/>
 			<path d="M10.5 16.2l3.6 3.6 7.4-7.6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
 		</svg>
@@ -321,18 +321,24 @@ class OrderWarden_Admin {
 		$first  = 'pro-' . key( self::pro_features() );
 		?>
 		<div class="wrap orderwarden">
-			<div class="orderwarden-header">
-				<?php self::logo(); ?>
-				<h1><?php esc_html_e( 'OrderWarden', 'orderwarden' ); ?></h1>
-				<span class="orderwarden-version"><?php echo esc_html( 'v' . ORDERWARDEN_VERSION ); ?></span>
-			</div>
+			<div class="ow-hero">
+				<div class="orderwarden-header">
+					<span class="ow-logo"><?php self::logo(); ?></span>
+					<div class="ow-title">
+						<h1><?php esc_html_e( 'OrderWarden', 'orderwarden' ); ?></h1>
+						<p class="ow-tagline"><?php esc_html_e( 'Stops card testing and fake orders before they reach your payment gateway.', 'orderwarden' ); ?></p>
+					</div>
+					<span class="orderwarden-version"><?php echo esc_html( 'v' . ORDERWARDEN_VERSION ); ?></span>
+				</div>
 
-			<nav class="orderwarden-tabs" aria-label="<?php esc_attr_e( 'OrderWarden sections', 'orderwarden' ); ?>">
-				<?php foreach ( $tabs as $key => $label ) : ?>
-					<a href="<?php echo esc_url( self::url( $key ) ); ?>"<?php echo $key === $tab ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
-				<?php endforeach; ?>
-				<a class="orderwarden-tab-pro" href="<?php echo esc_url( self::url( $first ) ); ?>"<?php echo $is_pro ? ' aria-current="page"' : ''; ?>><?php esc_html_e( 'Pro features', 'orderwarden' ); ?></a>
-			</nav>
+				<nav class="orderwarden-tabs" aria-label="<?php esc_attr_e( 'OrderWarden sections', 'orderwarden' ); ?>">
+					<?php foreach ( $tabs as $key => $label ) : ?>
+						<a href="<?php echo esc_url( self::url( $key ) ); ?>"<?php echo $key === $tab ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
+					<?php endforeach; ?>
+					<span class="ow-tab-gap" aria-hidden="true"></span>
+					<a class="ow-tab-pro" href="<?php echo esc_url( self::url( $first ) ); ?>"<?php echo $is_pro ? ' aria-current="page"' : ''; ?>><?php esc_html_e( 'Pro features', 'orderwarden' ); ?></a>
+				</nav>
+			</div>
 			<hr class="wp-header-end">
 
 			<?php
@@ -567,10 +573,10 @@ class OrderWarden_Admin {
 			<?php endif; ?>
 		</section>
 
-		<p class="orderwarden-footnote">
-			<?php esc_html_e( 'OrderWarden Pro adds automatic bans, Slack, Discord and Telegram alerts, and a weekly report.', 'orderwarden' ); ?>
-			<a class="orderwarden-link" href="<?php echo esc_url( self::url( 'pro-bans' ) ); ?>"><?php esc_html_e( 'See Pro features', 'orderwarden' ); ?></a>
-		</p>
+		<div class="orderwarden-footnote">
+			<span><?php esc_html_e( 'OrderWarden Pro adds automatic bans, Slack, Discord and Telegram alerts, and a weekly report.', 'orderwarden' ); ?></span>
+			<a class="button ow-btn-gold" href="<?php echo esc_url( self::url( 'pro-bans' ) ); ?>"><?php esc_html_e( 'See Pro features', 'orderwarden' ); ?></a>
+		</div>
 		<?php
 	}
 
@@ -984,8 +990,51 @@ class OrderWarden_Admin {
 
 
 	/**
-	 * Page for one Pro feature: what it does and when it is available.
-	 * Nothing here is locked code; the feature itself ships only in the paid add-on.
+	 * Small line icon for a Pro feature (original artwork).
+	 *
+	 * @param string $key Feature key.
+	 * @return void
+	 */
+	private static function pro_icon( $key ) {
+		$paths = array(
+			'bans'    => '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.5 8.5 7 7m0-7-7 7"/>',
+			'alerts'  => '<path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+			'report'  => '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4m8-4v4M8 15v-3m4 3V10m4 5v-2"/>',
+			'history' => '<path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/><path d="M4 4v4.5h4.5M12 8v4.5l3 2"/>',
+			'agency'  => '<rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/>',
+		);
+		$path = isset( $paths[ $key ] ) ? $paths[ $key ] : $paths['bans'];
+		echo '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . wp_kses( $path, array( 'path' => array( 'd' => true ), 'rect' => array( 'x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true ) ) ) . '</svg>';
+	}
+
+	/**
+	 * Plans shown on the Pro pages. Prices are set in Freemius; keep these in sync.
+	 *
+	 * @return array
+	 */
+	private static function pro_plans() {
+		return array(
+			1  => array(
+				'name'  => __( 'Single store', 'orderwarden' ),
+				'for'   => __( 'For one shop', 'orderwarden' ),
+				'price' => 49,
+			),
+			5  => array(
+				'name'  => __( '5 stores', 'orderwarden' ),
+				'for'   => __( 'For growing brands', 'orderwarden' ),
+				'price' => 189,
+			),
+			25 => array(
+				'name'  => __( '25 stores', 'orderwarden' ),
+				'for'   => __( 'For agencies', 'orderwarden' ),
+				'price' => 379,
+			),
+		);
+	}
+
+	/**
+	 * Page for one Pro feature, with plans. Nothing here is locked code;
+	 * the feature itself ships only in the paid add-on.
 	 *
 	 * @param string $current Feature key.
 	 * @return void
@@ -998,40 +1047,63 @@ class OrderWarden_Admin {
 		$feature = $features[ $current ];
 		$buy     = self::pro_url();
 		?>
-		<div class="orderwarden-pro">
-			<nav class="orderwarden-pro-nav" aria-label="<?php esc_attr_e( 'Pro features', 'orderwarden' ); ?>">
-				<?php foreach ( $features as $key => $item ) : ?>
-					<a href="<?php echo esc_url( self::url( 'pro-' . $key ) ); ?>"<?php echo $key === $current ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $item['menu'] ); ?></a>
-				<?php endforeach; ?>
-			</nav>
+		<nav class="ow-feature-nav" aria-label="<?php esc_attr_e( 'Pro features', 'orderwarden' ); ?>">
+			<?php foreach ( $features as $key => $item ) : ?>
+				<a href="<?php echo esc_url( self::url( 'pro-' . $key ) ); ?>"<?php echo $key === $current ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $item['menu'] ); ?></a>
+			<?php endforeach; ?>
+		</nav>
 
-			<section class="orderwarden-panel">
-				<div class="orderwarden-panel-head">
-					<h2><?php echo esc_html( $feature['title'] ); ?></h2>
-					<?php if ( '' === $buy ) : ?>
-						<span class="orderwarden-tag is-soon"><?php esc_html_e( 'Coming soon', 'orderwarden' ); ?></span>
-					<?php else : ?>
-						<span class="orderwarden-tag is-pro"><?php esc_html_e( 'Pro', 'orderwarden' ); ?></span>
-					<?php endif; ?>
-				</div>
-				<div class="orderwarden-panel-body">
-					<p class="orderwarden-pro-intro"><?php echo esc_html( $feature['intro'] ); ?></p>
-				</div>
-				<ul class="orderwarden-checklist">
+		<section class="ow-sale">
+			<div class="ow-sale-main">
+				<span class="ow-sale-icon"><?php self::pro_icon( $current ); ?></span>
+				<h2><?php echo esc_html( $feature['title'] ); ?></h2>
+				<p><?php echo esc_html( $feature['intro'] ); ?></p>
+				<ul class="ow-points">
 					<?php foreach ( $feature['points'] as $point ) : ?>
-						<li><?php self::check_icon(); ?><div><p><?php echo esc_html( $point ); ?></p></div></li>
+						<li><?php echo esc_html( $point ); ?></li>
 					<?php endforeach; ?>
 				</ul>
-				<div class="orderwarden-pro-foot">
-					<?php if ( '' === $buy ) : ?>
-						<p><?php esc_html_e( 'This is part of OrderWarden Pro, a separate add-on that is not out yet. Everything you use today stays free, with no limits.', 'orderwarden' ); ?></p>
-					<?php else : ?>
-						<p><?php esc_html_e( 'Part of OrderWarden Pro, a separate add-on. Everything you use today stays free, with no limits.', 'orderwarden' ); ?></p>
-						<a class="button button-primary" href="<?php echo esc_url( $buy ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Get OrderWarden Pro', 'orderwarden' ); ?></a>
-					<?php endif; ?>
-				</div>
-			</section>
-		</div>
+			</div>
+			<div class="ow-sale-aside">
+				<span class="ow-pro-badge"><?php esc_html_e( 'Pro', 'orderwarden' ); ?></span>
+				<h3 style="margin-top:14px"><?php esc_html_e( 'Part of OrderWarden Pro', 'orderwarden' ); ?></h3>
+				<p><?php esc_html_e( 'Pro is a separate add-on. Everything you use today stays free, with no limits, and Pro adds every feature listed on these pages.', 'orderwarden' ); ?></p>
+				<?php if ( '' === $buy ) : ?>
+					<p><strong><?php esc_html_e( 'Coming soon.', 'orderwarden' ); ?></strong></p>
+				<?php else : ?>
+					<a class="button ow-btn-gold" href="#ow-plans"><?php esc_html_e( 'See plans', 'orderwarden' ); ?></a>
+				<?php endif; ?>
+			</div>
+		</section>
+
+		<?php if ( '' !== $buy ) : ?>
+			<div id="ow-plans" class="ow-pricing">
+				<?php foreach ( self::pro_plans() as $sites => $plan ) : ?>
+					<div class="ow-plan<?php echo 5 === $sites ? ' is-featured' : ''; ?>">
+						<?php if ( 5 === $sites ) : ?>
+							<span class="ow-plan-flag"><?php esc_html_e( 'Best value', 'orderwarden' ); ?></span>
+						<?php endif; ?>
+						<h3><?php echo esc_html( $plan['name'] ); ?></h3>
+						<p class="ow-plan-for"><?php echo esc_html( $plan['for'] ); ?></p>
+						<div class="ow-price"><strong><?php echo esc_html( '$' . $plan['price'] ); ?></strong><span><?php esc_html_e( '/ year', 'orderwarden' ); ?></span></div>
+						<p class="ow-per">
+							<?php
+							/* translators: %s: price per store per year */
+							echo esc_html( 1 === $sites ? __( 'Everything in Pro', 'orderwarden' ) : sprintf( __( 'Only $%s per store', 'orderwarden' ), number_format_i18n( $plan['price'] / $sites, 2 ) ) );
+							?>
+						</p>
+						<ul class="ow-points">
+							<li><?php esc_html_e( 'Automatic bans', 'orderwarden' ); ?></li>
+							<li><?php esc_html_e( 'Slack, Discord, Telegram alerts', 'orderwarden' ); ?></li>
+							<li><?php esc_html_e( 'Weekly report and full history', 'orderwarden' ); ?></li>
+							<li><?php echo esc_html( 1 === $sites ? __( 'Email support', 'orderwarden' ) : __( 'Priority email support', 'orderwarden' ) ); ?></li>
+						</ul>
+						<a class="button <?php echo 5 === $sites ? 'ow-btn-gold' : 'orderwarden-btn'; ?>" href="<?php echo esc_url( trailingslashit( $buy ) . 'licenses/' . $sites . '/' ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Get Pro', 'orderwarden' ); ?></a>
+					</div>
+				<?php endforeach; ?>
+			</div>
+			<p class="ow-guarantee"><?php esc_html_e( '14-day money back guarantee. Secure checkout by Freemius.', 'orderwarden' ); ?></p>
+		<?php endif; ?>
 		<?php
 	}
 
