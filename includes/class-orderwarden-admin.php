@@ -184,13 +184,13 @@ class OrderWarden_Admin {
 				<h1><?php esc_html_e( 'OrderWarden', 'orderwarden' ); ?></h1>
 				<span class="orderwarden-version"><?php echo esc_html( 'v' . ORDERWARDEN_VERSION ); ?></span>
 			</div>
-			<hr class="wp-header-end">
 
 			<nav class="orderwarden-tabs" aria-label="<?php esc_attr_e( 'OrderWarden sections', 'orderwarden' ); ?>">
 				<?php foreach ( $tabs as $key => $label ) : ?>
 					<a href="<?php echo esc_url( self::url( $key ) ); ?>"<?php echo $key === $tab ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
 				<?php endforeach; ?>
 			</nav>
+			<hr class="wp-header-end">
 
 			<?php
 			switch ( $tab ) {

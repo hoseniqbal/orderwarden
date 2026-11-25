@@ -36,7 +36,7 @@ System font stack (same as WordPress admin, no external font requests).
 Rules: sentence case everywhere, no all-caps labels, no long dashes, no arrows appended to links, no labels above headings.
 
 ## Layout
-- One **status banner** at the top of every Warden plugin. Its color is the state (pine = protected, amber = learning, red = off). This is the one bold element; everything else stays quiet.
+- One **status banner** at the top of each plugin's Overview screen. Its color is the state (pine = protected, amber = learning, red = off). This is the one bold element; everything else stays quiet.
 - Numbers sit in **one panel split by dividers**, not a grid of identical cards.
 - Settings are **rows inside one panel**: label and help on the left, control on the right. Yes/no options are switches.
 - Radius: panels 8px, buttons 6px, pills fully round. One soft border, no drop shadows, no gradients.
