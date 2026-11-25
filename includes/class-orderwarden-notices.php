@@ -5,8 +5,9 @@
  * Asks for a review only after OrderWarden has proven itself: at least
  * 7 days after install and at least 10 blocked attempts. Shown only on
  * OrderWarden's own screen, the Dashboard and the Plugins screen, to users
- * who manage the store. "Maybe later" hides it for 7 days; "I already did"
- * and "Write a review" hide it for good.
+ * who manage the store. It first asks whether OrderWarden is helping: "Not
+ * really" leads to the support forum instead. "Maybe later" hides it for
+ * 7 days; "I already did" and "Write a review" hide it for good.
  *
  * @package OrderWarden
  */
@@ -26,6 +27,7 @@ class OrderWarden_Notices {
 	const MIN_BLOCKED   = 10;
 	const SNOOZE_DAYS   = 7;
 	const REVIEW_URL    = 'https://wordpress.org/support/plugin/orderwarden/reviews/#new-post';
+	const SUPPORT_URL   = 'https://wordpress.org/support/plugin/orderwarden/';
 
 	/**
 	 * Hook registration.
@@ -87,7 +89,7 @@ class OrderWarden_Notices {
 	/**
 	 * Action link for one of the buttons.
 	 *
-	 * @param string $choice rate | later | done.
+	 * @param string $choice yes | no | rate | later | done.
 	 * @return string
 	 */
 	private static function link( $choice ) {
@@ -114,27 +116,36 @@ class OrderWarden_Notices {
 		}
 		$lifetime = OrderWarden_Logger::lifetime();
 		$blocked  = (int) $lifetime['blocked'];
+		$state    = get_option( self::OPTION, array() );
+		$helpful  = is_array( $state ) && ! empty( $state['helpful'] );
+		$headline = sprintf(
+			/* translators: %s: number of blocked attempts */
+			_n( 'OrderWarden has stopped %s bot order on your store.', 'OrderWarden has stopped %s bot orders on your store.', $blocked, 'orderwarden' ),
+			number_format_i18n( $blocked )
+		);
 		?>
 		<div class="notice notice-info orderwarden-review">
-			<p>
-				<strong>
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: %s: number of blocked attempts */
-							_n( 'OrderWarden has stopped %s bot order on your store.', 'OrderWarden has stopped %s bot orders on your store.', $blocked, 'orderwarden' ),
-							number_format_i18n( $blocked )
-						)
-					);
-					?>
-				</strong>
-				<?php esc_html_e( 'If it has saved you some trouble, a short review on WordPress.org helps other store owners find it. It takes a minute.', 'orderwarden' ); ?>
-			</p>
-			<p>
-				<a class="button button-primary" href="<?php echo esc_url( self::link( 'rate' ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Write a review', 'orderwarden' ); ?></a>
-				<a class="button" href="<?php echo esc_url( self::link( 'later' ) ); ?>"><?php esc_html_e( 'Maybe later', 'orderwarden' ); ?></a>
-				<a class="button-link" href="<?php echo esc_url( self::link( 'done' ) ); ?>" style="margin-left:8px"><?php esc_html_e( 'I already did', 'orderwarden' ); ?></a>
-			</p>
+			<?php if ( ! $helpful ) : ?>
+				<p>
+					<strong><?php echo esc_html( $headline ); ?></strong>
+					<?php esc_html_e( 'Is OrderWarden helping your store?', 'orderwarden' ); ?>
+				</p>
+				<p>
+					<a class="button button-primary" href="<?php echo esc_url( self::link( 'yes' ) ); ?>"><?php esc_html_e( 'Yes, it helps', 'orderwarden' ); ?></a>
+					<a class="button" href="<?php echo esc_url( self::link( 'no' ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Not really', 'orderwarden' ); ?></a>
+					<a class="button-link" href="<?php echo esc_url( self::link( 'later' ) ); ?>" style="margin-left:8px"><?php esc_html_e( 'Ask me later', 'orderwarden' ); ?></a>
+				</p>
+			<?php else : ?>
+				<p>
+					<strong><?php esc_html_e( 'Glad to hear it.', 'orderwarden' ); ?></strong>
+					<?php esc_html_e( 'A short review on WordPress.org helps other store owners find OrderWarden. It takes a minute.', 'orderwarden' ); ?>
+				</p>
+				<p>
+					<a class="button button-primary" href="<?php echo esc_url( self::link( 'rate' ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Write a review', 'orderwarden' ); ?></a>
+					<a class="button" href="<?php echo esc_url( self::link( 'later' ) ); ?>"><?php esc_html_e( 'Maybe later', 'orderwarden' ); ?></a>
+					<a class="button-link" href="<?php echo esc_url( self::link( 'done' ) ); ?>" style="margin-left:8px"><?php esc_html_e( 'I already did', 'orderwarden' ); ?></a>
+				</p>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
@@ -156,11 +167,17 @@ class OrderWarden_Notices {
 
 		if ( 'later' === $choice ) {
 			$state['snooze_until'] = time() + self::SNOOZE_DAYS * DAY_IN_SECONDS;
+		} elseif ( 'yes' === $choice ) {
+			$state['helpful'] = time();
 		} else {
 			$state['done'] = time();
 		}
 		update_option( self::OPTION, $state, false );
 
+		if ( 'no' === $choice ) {
+			wp_redirect( self::SUPPORT_URL ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- fixed wordpress.org URL.
+			exit;
+		}
 		if ( 'rate' === $choice ) {
 			wp_redirect( self::REVIEW_URL ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- fixed wordpress.org URL.
 			exit;

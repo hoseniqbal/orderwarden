@@ -163,7 +163,7 @@ class OrderWarden_Admin {
 	 * @return string
 	 */
 	public static function pro_url() {
-		return (string) apply_filters( 'orderwarden_pro_url', '' );
+		return (string) apply_filters( 'orderwarden_pro_url', 'https://checkout.freemius.com/plugin/46327/plan/81643/' );
 	}
 
 	/**
@@ -188,7 +188,7 @@ class OrderWarden_Admin {
 				'title'  => __( 'Alerts where you already are', 'orderwarden' ),
 				'intro'  => __( 'Hear about an attack the minute it starts, on the app you check most.', 'orderwarden' ),
 				'points' => array(
-					__( 'Slack, WhatsApp and Telegram, as well as email', 'orderwarden' ),
+					__( 'Slack, Discord, Telegram or any webhook, as well as email', 'orderwarden' ),
 					__( 'One message per attack, not one per blocked order', 'orderwarden' ),
 					__( 'A short note when the attack is over', 'orderwarden' ),
 				),
@@ -210,16 +210,16 @@ class OrderWarden_Admin {
 				'points' => array(
 					__( 'Filter by date, reason, checkout and IP', 'orderwarden' ),
 					__( 'Export to CSV for your records or your payment provider', 'orderwarden' ),
-					__( 'Charts that show when attacks start and stop', 'orderwarden' ),
+					__( 'A daily chart that shows when attacks start and stop', 'orderwarden' ),
 				),
 			),
 			'agency'  => array(
 				'menu'   => __( 'Many stores', 'orderwarden' ),
-				'title'  => __( 'One dashboard for many stores', 'orderwarden' ),
+				'title'  => __( 'Made for many stores', 'orderwarden' ),
 				'intro'  => __( 'For agencies and owners with more than one shop.', 'orderwarden' ),
 				'points' => array(
-					__( 'See attacks across all your stores in one place', 'orderwarden' ),
-					__( 'Copy settings from one store to the others', 'orderwarden' ),
+					__( 'Licences for 5 or 25 stores at a lower price per store', 'orderwarden' ),
+					__( 'Copy your settings from one store to the others in one step', 'orderwarden' ),
 					__( 'Priority email support from the developer', 'orderwarden' ),
 				),
 			),
@@ -373,6 +373,9 @@ class OrderWarden_Admin {
 			'too_fast'       => __( 'Faster than a person can type', 'orderwarden' ),
 			'agent_mismatch' => __( 'Pass copied to another browser', 'orderwarden' ),
 			'velocity'       => __( 'Too many failed payments', 'orderwarden' ),
+			'banned_range'   => __( 'Banned IP range (Pro)', 'orderwarden' ),
+			'banned_email'   => __( 'Banned email (Pro)', 'orderwarden' ),
+			'banned_address' => __( 'Banned billing address (Pro)', 'orderwarden' ),
 		);
 		return isset( $labels[ $reason ] ) ? $labels[ $reason ] : $reason;
 	}
@@ -565,8 +568,8 @@ class OrderWarden_Admin {
 		</section>
 
 		<p class="orderwarden-footnote">
-			<?php esc_html_e( 'OrderWarden Pro is on the way, with automatic bans, Slack and WhatsApp alerts and a weekly report.', 'orderwarden' ); ?>
-			<a class="orderwarden-link" href="<?php echo esc_url( self::url( 'pro-bans' ) ); ?>"><?php esc_html_e( 'See what is coming', 'orderwarden' ); ?></a>
+			<?php esc_html_e( 'OrderWarden Pro adds automatic bans, Slack, Discord and Telegram alerts, and a weekly report.', 'orderwarden' ); ?>
+			<a class="orderwarden-link" href="<?php echo esc_url( self::url( 'pro-bans' ) ); ?>"><?php esc_html_e( 'See Pro features', 'orderwarden' ); ?></a>
 		</p>
 		<?php
 	}

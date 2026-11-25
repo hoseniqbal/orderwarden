@@ -5,7 +5,7 @@ Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
 Requires Plugins: woocommerce
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,7 +79,7 @@ Only orders with the status "Failed". You choose guest orders only or all, an op
 
 = Is there a Pro version? =
 
-A separate Pro add-on is planned, with automatic bans, Slack, WhatsApp and Telegram alerts, a weekly report, full attack history and a dashboard for many stores. Its pages appear in the OrderWarden menu marked "Pro" and say "Coming soon" until it is released. Nothing in this free plugin is locked or limited.
+Yes. OrderWarden Pro is a separate add-on with automatic bans by IP range, email and billing address, attack alerts on Slack, Discord, Telegram or any webhook, a weekly email report, full attack history with CSV export, and settings transfer for agencies. Its pages are listed in the OrderWarden menu and marked "Pro". Nothing in this free plugin is locked or limited.
 
 == Screenshots ==
 
@@ -90,10 +90,18 @@ A separate Pro add-on is planned, with automatic bans, Slack, WhatsApp and Teleg
 
 == Changelog ==
 
+= 1.1.0 =
+* The review request now first asks whether OrderWarden is helping. "Not really" leads to the support forum.
+* Pro pages link to OrderWarden Pro, which is now available.
+* Clear labels for attempts stopped by Pro bans.
+
 = 1.0.0 =
 * First release: token-based checkout protection (classic, block, pay for order, express buttons), failed payment limit, failed order cleanup, email alerts, gateway checklist, dashboard.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Friendlier review request and links to OrderWarden Pro.
 
 = 1.0.0 =
 First release.
