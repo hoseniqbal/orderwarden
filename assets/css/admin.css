@@ -1,14 +1,405 @@
-.orderwarden .notice.inline { margin: 16px 0; }
-.orderwarden-cards { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
-.orderwarden-card { background: #fff; border: 1px solid #dcdcde; border-radius: 4px; padding: 16px 20px; min-width: 180px; }
-.orderwarden-card .num { display: block; font-size: 28px; font-weight: 600; line-height: 1.2; }
-.orderwarden-card .label { color: #50575e; }
-.orderwarden-status { max-width: 640px; }
-.orderwarden-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-.orderwarden-pill.on { background: #d1fae5; color: #065f46; }
-.orderwarden-pill.learn { background: #fef3c7; color: #92400e; }
-.orderwarden-pill.off { background: #fee2e2; color: #991b1b; }
-.orderwarden-cleanup-hint { font-size: 14px; margin-top: 16px; }
-.orderwarden-cleanup-form { margin-top: 20px; }
-.orderwarden-tip { background: #fff; border-left: 4px solid #2271b1; padding: 4px 16px; margin: 12px 0; max-width: 760px; }
-.orderwarden-list li { max-width: 760px; margin-bottom: 8px; }
+/* OrderWarden admin. Tokens follow DESIGN.md (Warden admin design system). */
+
+.orderwarden {
+	--ow-ink: #1d2733;
+	--ow-text: #3f4b59;
+	--ow-muted: #6b7684;
+	--ow-line: #dde3ea;
+	--ow-surface: #ffffff;
+	--ow-pine: #136f4d;
+	--ow-pine-dark: #0e5a3e;
+	--ow-pine-tint: #e6f2ec;
+	--ow-amber: #9a5b0b;
+	--ow-amber-tint: #fbf0dc;
+	--ow-red: #b42318;
+	--ow-red-tint: #fde8e6;
+
+	max-width: 1040px;
+	color: var(--ow-text);
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.orderwarden * { box-sizing: border-box; }
+
+/* Header */
+.orderwarden-header {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 18px 0 20px;
+}
+.orderwarden-header svg { flex: none; }
+.orderwarden-header h1 {
+	margin: 0;
+	padding: 0;
+	font-size: 23px;
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--ow-ink);
+}
+.orderwarden-version {
+	color: var(--ow-muted);
+	font-size: 13px;
+}
+
+/* Tabs */
+.orderwarden-tabs {
+	display: flex;
+	gap: 24px;
+	margin: 0 0 24px;
+	border-bottom: 1px solid var(--ow-line);
+}
+.orderwarden-tabs a {
+	display: block;
+	padding: 10px 0;
+	margin-bottom: -1px;
+	border-bottom: 2px solid transparent;
+	color: var(--ow-muted);
+	font-size: 14px;
+	font-weight: 500;
+	text-decoration: none;
+}
+.orderwarden-tabs a:hover { color: var(--ow-ink); }
+.orderwarden-tabs a[aria-current="page"] {
+	color: var(--ow-ink);
+	border-bottom-color: var(--ow-pine);
+}
+.orderwarden a:focus-visible,
+.orderwarden button:focus-visible,
+.orderwarden input:focus-visible,
+.orderwarden select:focus-visible,
+.orderwarden textarea:focus-visible {
+	outline: 2px solid var(--ow-pine);
+	outline-offset: 2px;
+	box-shadow: none;
+}
+
+/* Status banner: the one bold element */
+.orderwarden-banner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px 24px;
+	padding: 20px 24px;
+	margin-bottom: 24px;
+	border-radius: 8px;
+	border: 1px solid transparent;
+}
+.orderwarden-banner h2 {
+	margin: 0 0 2px;
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+.orderwarden-banner p { margin: 0; max-width: 62ch; }
+.orderwarden-banner.is-on { background: var(--ow-pine-tint); border-color: #c4e2d3; }
+.orderwarden-banner.is-on h2 { color: var(--ow-pine-dark); }
+.orderwarden-banner.is-learning { background: var(--ow-amber-tint); border-color: #f0dcb4; }
+.orderwarden-banner.is-learning h2 { color: var(--ow-amber); }
+.orderwarden-banner.is-off { background: var(--ow-red-tint); border-color: #f6c9c4; }
+.orderwarden-banner.is-off h2 { color: var(--ow-red); }
+
+.orderwarden-channels {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.orderwarden-channels li {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	padding: 4px 12px;
+	border-radius: 999px;
+	background: var(--ow-surface);
+	border: 1px solid var(--ow-line);
+	font-size: 13px;
+	color: var(--ow-text);
+}
+.orderwarden-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--ow-amber);
+}
+.orderwarden-dot.is-on { background: var(--ow-pine); }
+.orderwarden-dot.is-off { background: var(--ow-red); }
+
+/* Panels */
+.orderwarden-panel {
+	background: var(--ow-surface);
+	border: 1px solid var(--ow-line);
+	border-radius: 8px;
+	margin-bottom: 24px;
+}
+.orderwarden-panel-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 16px 24px;
+	border-bottom: 1px solid var(--ow-line);
+}
+.orderwarden-panel-head h2 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--ow-ink);
+}
+.orderwarden-panel-head p { margin: 0; color: var(--ow-muted); font-size: 13px; }
+.orderwarden-panel-body { padding: 20px 24px; }
+.orderwarden-panel-body > p:first-child { margin-top: 0; }
+.orderwarden-panel-body > p:last-child { margin-bottom: 0; }
+
+/* Figures: one panel split by dividers */
+.orderwarden-figures {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	margin: 0;
+}
+.orderwarden-figures > div {
+	padding: 20px 24px;
+	border-left: 1px solid var(--ow-line);
+}
+.orderwarden-figures > div:first-child { border-left: 0; }
+.orderwarden-figures dt {
+	margin: 0 0 4px;
+	color: var(--ow-muted);
+	font-size: 13px;
+}
+.orderwarden-figures dd {
+	margin: 0;
+	font-size: 28px;
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--ow-ink);
+	font-variant-numeric: tabular-nums;
+}
+
+/* Callout under figures */
+.orderwarden-callout {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 24px;
+	border-top: 1px solid var(--ow-line);
+	background: #fafbfc;
+	border-radius: 0 0 8px 8px;
+}
+.orderwarden-callout p { margin: 0; }
+
+/* Table */
+.orderwarden-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+.orderwarden-table th {
+	padding: 12px 24px;
+	text-align: left;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--ow-muted);
+	border-bottom: 1px solid var(--ow-line);
+}
+.orderwarden-table td {
+	padding: 12px 24px;
+	border-bottom: 1px solid #eef1f5;
+	vertical-align: top;
+}
+.orderwarden-table tr:last-child td { border-bottom: 0; }
+.orderwarden-table .is-time { white-space: nowrap; color: var(--ow-muted); }
+.orderwarden-table code {
+	background: none;
+	padding: 0;
+	font-size: 13px;
+	color: var(--ow-text);
+}
+.orderwarden-tag {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 500;
+	white-space: nowrap;
+}
+.orderwarden-tag.is-blocked { background: var(--ow-red-tint); color: var(--ow-red); }
+.orderwarden-tag.is-would { background: var(--ow-amber-tint); color: var(--ow-amber); }
+
+.orderwarden-empty {
+	padding: 28px 24px;
+	color: var(--ow-muted);
+}
+.orderwarden-empty strong { display: block; color: var(--ow-ink); font-weight: 600; margin-bottom: 2px; }
+
+/* Setting rows */
+.orderwarden-row {
+	display: grid;
+	grid-template-columns: minmax(220px, 300px) 1fr;
+	gap: 8px 32px;
+	padding: 20px 24px;
+	border-top: 1px solid #eef1f5;
+}
+.orderwarden-panel-head + .orderwarden-row { border-top: 0; }
+.orderwarden-row-label { color: var(--ow-ink); font-weight: 600; }
+.orderwarden-row-label p {
+	margin: 2px 0 0;
+	font-weight: 400;
+	color: var(--ow-muted);
+	font-size: 13px;
+	line-height: 1.5;
+}
+.orderwarden-row-control > * + * { margin-top: 10px; }
+.orderwarden-row-control p { margin: 0; }
+.orderwarden-help { color: var(--ow-muted); font-size: 13px; line-height: 1.5; max-width: 62ch; }
+
+.orderwarden input[type="number"],
+.orderwarden input[type="email"],
+.orderwarden select,
+.orderwarden textarea {
+	border: 1px solid #c5ced8;
+	border-radius: 6px;
+	padding: 6px 10px;
+	min-height: 36px;
+	font-size: 14px;
+	color: var(--ow-ink);
+	box-shadow: none;
+}
+.orderwarden input[type="number"] { width: 76px; }
+.orderwarden input[type="email"] { width: 100%; max-width: 360px; }
+.orderwarden select { min-width: 260px; }
+.orderwarden textarea { width: 100%; max-width: 480px; font-family: Menlo, Consolas, monospace; font-size: 13px; }
+.orderwarden input:focus,
+.orderwarden select:focus,
+.orderwarden textarea:focus { border-color: var(--ow-pine); }
+
+/* Switch: a real checkbox, styled */
+.orderwarden-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+	color: var(--ow-text);
+}
+.orderwarden-switch input[type="checkbox"] {
+	-webkit-appearance: none;
+	appearance: none;
+	position: relative;
+	width: 36px;
+	height: 20px;
+	margin: 0;
+	border: 0;
+	border-radius: 999px;
+	background: #c5ced8;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+	box-shadow: none;
+}
+.orderwarden-switch input[type="checkbox"]::before {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	border-radius: 50%;
+	background: #fff;
+	transition: transform 0.15s ease;
+}
+.orderwarden-switch input[type="checkbox"]:checked { background: var(--ow-pine); }
+.orderwarden-switch input[type="checkbox"]:checked::before { transform: translateX(16px); }
+
+/* Radios and plain checkboxes in forms */
+.orderwarden-choice { display: flex; gap: 8px; align-items: flex-start; margin: 0; }
+.orderwarden-choice input { margin-top: 3px; }
+.orderwarden-choice + .orderwarden-choice { margin-top: 8px; }
+
+/* Buttons */
+.orderwarden .button.orderwarden-btn,
+.orderwarden .button.orderwarden-btn-secondary {
+	min-height: 38px;
+	padding: 0 18px;
+	border-radius: 6px;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 36px;
+	box-shadow: none;
+	text-shadow: none;
+}
+.orderwarden .button.orderwarden-btn {
+	background: var(--ow-pine);
+	border: 1px solid var(--ow-pine);
+	color: #fff;
+}
+.orderwarden .button.orderwarden-btn:hover,
+.orderwarden .button.orderwarden-btn:focus { background: var(--ow-pine-dark); border-color: var(--ow-pine-dark); color: #fff; }
+.orderwarden .button.orderwarden-btn-secondary {
+	background: #fff;
+	border: 1px solid #c5ced8;
+	color: var(--ow-ink);
+}
+.orderwarden .button.orderwarden-btn-secondary:hover { border-color: var(--ow-ink); color: var(--ow-ink); }
+.orderwarden-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 16px 24px;
+	border-top: 1px solid var(--ow-line);
+	background: #fafbfc;
+	border-radius: 0 0 8px 8px;
+}
+
+.orderwarden-link { color: var(--ow-pine); font-weight: 500; text-decoration: none; }
+.orderwarden-link:hover { color: var(--ow-pine-dark); text-decoration: underline; }
+
+/* Progress */
+.orderwarden-progress {
+	height: 8px;
+	border-radius: 999px;
+	background: #eef1f5;
+	overflow: hidden;
+	margin: 12px 0 8px;
+	max-width: 480px;
+}
+.orderwarden-progress span { display: block; height: 100%; background: var(--ow-pine); }
+
+/* Checklist */
+.orderwarden-checklist { margin: 0; padding: 0; list-style: none; }
+.orderwarden-checklist li {
+	display: grid;
+	grid-template-columns: 20px 1fr;
+	gap: 12px;
+	padding: 16px 24px;
+	border-top: 1px solid #eef1f5;
+	margin: 0;
+}
+.orderwarden-checklist li:first-child { border-top: 0; }
+.orderwarden-checklist strong { display: block; color: var(--ow-ink); font-weight: 600; }
+.orderwarden-checklist p { margin: 2px 0 0; max-width: 68ch; }
+.orderwarden-checklist svg { margin-top: 3px; color: var(--ow-pine); }
+
+/* WordPress notices inside our page */
+.orderwarden .notice { margin: 0 0 20px; border-radius: 6px; }
+
+/* Small screens */
+@media (max-width: 782px) {
+	.orderwarden-figures { grid-template-columns: repeat(2, 1fr); }
+	.orderwarden-figures > div:nth-child(3) { border-left: 0; }
+	.orderwarden-figures > div:nth-child(n+3) { border-top: 1px solid var(--ow-line); }
+	.orderwarden-row { grid-template-columns: 1fr; }
+	.orderwarden-tabs { gap: 16px; overflow-x: auto; }
+	.orderwarden-table .is-ip { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.orderwarden-switch input[type="checkbox"],
+	.orderwarden-switch input[type="checkbox"]::before { transition: none; }
+}

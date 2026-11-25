@@ -1,4 +1,4 @@
-# OrderWarden – Stop Card Testing & Fake Orders for WooCommerce
+# OrderWarden: Stop Card Testing & Fake Orders for WooCommerce
 
 Free WordPress plugin. Stops card-testing bots and fake orders at the WooCommerce checkout without CAPTCHA, and cleans up thousands of failed orders in one click.
 

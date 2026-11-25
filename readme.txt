@@ -1,4 +1,4 @@
-=== OrderWarden – Stop Card Testing & Fake Orders for WooCommerce ===
+=== OrderWarden: Stop Card Testing & Fake Orders for WooCommerce ===
 Contributors: hoseniqbal
 Tags: card testing, fake orders, woocommerce fraud, checkout protection, anti-fraud
 Requires at least: 6.2
@@ -23,18 +23,18 @@ When a real shopper opens your store, their browser quietly receives a signed to
 
 = Features =
 
-* **Checkout protection without CAPTCHA** – covers the classic checkout, the block checkout (Store API), the "Pay for order" page and express payment buttons.
-* **Works with every payment gateway** – Stripe, PayPal, WooPayments, Authorize.net, Square, Braintree and the rest. Nothing to configure per gateway.
-* **Safe by default** – Automatic mode only starts blocking a checkout type after it has seen one genuine order go through there, so a theme or caching problem never turns real customers away.
-* **Failed payment limit** – an address that fails payment again and again (a bot driving a real browser) is turned away for a while.
-* **One-click cleanup of failed orders** – remove thousands of failed orders left by an attack, in the background, without timeouts. Move them to Trash or delete them permanently, guest orders only or all.
-* **Attack alerts by email** – know when an attack starts, at most one email per hour.
-* **Gateway checklist** – shows the free protections to switch on in the payment gateways you actually use, plus Cloudflare and WooCommerce settings.
-* **Dashboard** – blocked attempts in the last 24 hours and 7 days, and what was stopped and why.
-* **Returning customers are trusted** – logged-in customers with a paid order are never blocked (optional).
+* **Checkout protection without CAPTCHA**. Covers the classic checkout, the block checkout (Store API), the "Pay for order" page and express payment buttons.
+* **Works with every payment gateway**. Stripe, PayPal, WooPayments, Authorize.net, Square, Braintree and the rest. Nothing to configure per gateway.
+* **Safe by default**. Automatic mode only starts blocking a checkout type after it has seen one genuine order go through there, so a theme or caching problem never turns real customers away.
+* **Failed payment limit**. An address that fails payment again and again (a bot driving a real browser) is turned away for a while.
+* **One-click cleanup of failed orders**. Remove thousands of failed orders left by an attack, in the background, without timeouts. Move them to Trash or delete them permanently, guest orders only or all.
+* **Attack alerts by email**. Know when an attack starts, at most one email per hour.
+* **Gateway checklist**. Shows the free protections to switch on in the payment gateways you actually use, plus Cloudflare and WooCommerce settings.
+* **Dashboard**. Blocked attempts in the last 24 hours and 7 days, and what was stopped and why.
+* **Returning customers are trusted**. Logged-in customers with a paid order are never blocked (optional).
 * **IP allowlist** with CIDR ranges.
-* **Private by design** – everything runs on your own server. No external service, no API key, no tracking. IP addresses are stored masked.
-* **Fast and compatible** – works with page caching (WP Rocket, LiteSpeed, Cloudflare), HPOS and the Cart and Checkout blocks.
+* **Private by design**. Everything runs on your own server. No external service, no API key, no tracking. IP addresses are stored masked.
+* **Fast and compatible**. Works with page caching (WP Rocket, LiteSpeed, Cloudflare), HPOS and the Cart and Checkout blocks.
 
 = What it does not stop =
 

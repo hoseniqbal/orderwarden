@@ -126,6 +126,41 @@ class OrderWarden_Admin {
 	}
 
 	/**
+	 * Tags allowed inside translated sentences that embed form fields.
+	 *
+	 * @return array
+	 */
+	private static function allowed_html() {
+		return array(
+			'strong' => array(),
+			'input'  => array(
+				'type'       => true,
+				'min'        => true,
+				'max'        => true,
+				'class'      => true,
+				'name'       => true,
+				'value'      => true,
+				'id'         => true,
+				'aria-label' => true,
+			),
+		);
+	}
+
+	/**
+	 * Shield mark used in the header (original artwork).
+	 *
+	 * @return void
+	 */
+	private static function logo() {
+		?>
+		<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+			<path d="M16 2.5 4.5 6.8v8.4c0 7.1 4.9 12.4 11.5 14.3 6.6-1.9 11.5-7.2 11.5-14.3V6.8L16 2.5Z" fill="#136f4d"/>
+			<path d="M10.5 16.2l3.6 3.6 7.4-7.6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+		</svg>
+		<?php
+	}
+
+	/**
 	 * Render the page.
 	 *
 	 * @return void
@@ -138,17 +173,24 @@ class OrderWarden_Admin {
 		$tabs = array(
 			'overview'  => __( 'Overview', 'orderwarden' ),
 			'settings'  => __( 'Settings', 'orderwarden' ),
-			'cleanup'   => __( 'Clean up failed orders', 'orderwarden' ),
+			'cleanup'   => __( 'Failed orders', 'orderwarden' ),
 			'checklist' => __( 'Checklist', 'orderwarden' ),
 		);
 		?>
 		<div class="wrap orderwarden">
-			<h1><?php esc_html_e( 'OrderWarden', 'orderwarden' ); ?></h1>
-			<nav class="nav-tab-wrapper">
+			<div class="orderwarden-header">
+				<?php self::logo(); ?>
+				<h1><?php esc_html_e( 'OrderWarden', 'orderwarden' ); ?></h1>
+				<span class="orderwarden-version"><?php echo esc_html( 'v' . ORDERWARDEN_VERSION ); ?></span>
+			</div>
+			<hr class="wp-header-end">
+
+			<nav class="orderwarden-tabs" aria-label="<?php esc_attr_e( 'OrderWarden sections', 'orderwarden' ); ?>">
 				<?php foreach ( $tabs as $key => $label ) : ?>
-					<a href="<?php echo esc_url( self::url( $key ) ); ?>" class="nav-tab <?php echo $key === $tab ? 'nav-tab-active' : ''; ?>"><?php echo esc_html( $label ); ?></a>
+					<a href="<?php echo esc_url( self::url( $key ) ); ?>"<?php echo $key === $tab ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
 				<?php endforeach; ?>
 			</nav>
+
 			<?php
 			switch ( $tab ) {
 				case 'settings':
@@ -169,25 +211,6 @@ class OrderWarden_Admin {
 	}
 
 	/**
-	 * Tags allowed inside translated sentences that embed form fields.
-	 *
-	 * @return array
-	 */
-	private static function allowed_html() {
-		return array(
-			'strong' => array(),
-			'input'  => array(
-				'type'  => true,
-				'min'   => true,
-				'max'   => true,
-				'class' => true,
-				'name'  => true,
-				'value' => true,
-			),
-		);
-	}
-
-	/**
 	 * Human label for a reason code.
 	 *
 	 * @param string $reason Reason.
@@ -195,13 +218,13 @@ class OrderWarden_Admin {
 	 */
 	private static function reason_label( $reason ) {
 		$labels = array(
-			'missing'        => __( 'No token (request did not come from your checkout page)', 'orderwarden' ),
-			'malformed'      => __( 'Broken token', 'orderwarden' ),
-			'bad_signature'  => __( 'Forged token', 'orderwarden' ),
-			'expired'        => __( 'Expired token', 'orderwarden' ),
-			'too_fast'       => __( 'Submitted faster than a human could', 'orderwarden' ),
-			'agent_mismatch' => __( 'Token reused by a different browser', 'orderwarden' ),
-			'velocity'       => __( 'Too many failed payments from this address', 'orderwarden' ),
+			'missing'        => __( 'Sent without visiting your checkout', 'orderwarden' ),
+			'malformed'      => __( 'Broken checkout pass', 'orderwarden' ),
+			'bad_signature'  => __( 'Forged checkout pass', 'orderwarden' ),
+			'expired'        => __( 'Expired checkout pass', 'orderwarden' ),
+			'too_fast'       => __( 'Faster than a person can type', 'orderwarden' ),
+			'agent_mismatch' => __( 'Pass copied to another browser', 'orderwarden' ),
+			'velocity'       => __( 'Too many failed payments', 'orderwarden' ),
 		);
 		return isset( $labels[ $reason ] ) ? $labels[ $reason ] : $reason;
 	}
@@ -214,11 +237,88 @@ class OrderWarden_Admin {
 	 */
 	private static function channel_label( $channel ) {
 		$labels = array(
-			'classic'   => __( 'Classic checkout & express buttons', 'orderwarden' ),
-			'store_api' => __( 'Block checkout (Store API)', 'orderwarden' ),
-			'pay'       => __( 'Pay for order page', 'orderwarden' ),
+			'classic'   => __( 'Classic checkout', 'orderwarden' ),
+			'store_api' => __( 'Block checkout', 'orderwarden' ),
+			'pay'       => __( 'Pay for order', 'orderwarden' ),
 		);
 		return isset( $labels[ $channel ] ) ? $labels[ $channel ] : $channel;
+	}
+
+	/**
+	 * Overall state for the banner.
+	 *
+	 * @return array{state:string,title:string,text:string}
+	 */
+	private static function overall_state() {
+		$mode = OrderWarden_Settings::get( 'mode' );
+		if ( 'off' === $mode ) {
+			return array(
+				'state' => 'off',
+				'title' => __( 'Protection is switched off', 'orderwarden' ),
+				'text'  => __( 'Bots can place orders on your store. Turn protection back on in Settings.', 'orderwarden' ),
+			);
+		}
+		if ( 'learning' === $mode ) {
+			return array(
+				'state' => 'learning',
+				'title' => __( 'Learning mode: nothing is being blocked', 'orderwarden' ),
+				'text'  => __( 'OrderWarden only records what it would block. Switch to Automatic in Settings when you are ready.', 'orderwarden' ),
+			);
+		}
+		$armed = OrderWarden_Guard::armed();
+		if ( empty( $armed ) && 'auto' === $mode ) {
+			return array(
+				'state' => 'learning',
+				'title' => __( 'One step left: place a test order', 'orderwarden' ),
+				'text'  => __( 'Place one normal order on your store. As soon as OrderWarden sees it go through, protection switches on for that checkout.', 'orderwarden' ),
+			);
+		}
+		return array(
+			'state' => 'on',
+			'title' => __( 'Your checkout is protected', 'orderwarden' ),
+			'text'  => __( 'Orders sent by bots are stopped before WooCommerce creates them or contacts your payment gateway. Real customers see nothing.', 'orderwarden' ),
+		);
+	}
+
+	/**
+	 * Status banner, shown on every tab.
+	 *
+	 * @return void
+	 */
+	private static function render_banner() {
+		$state = self::overall_state();
+		$mode  = OrderWarden_Settings::get( 'mode' );
+		?>
+		<section class="orderwarden-banner is-<?php echo esc_attr( $state['state'] ); ?>">
+			<div>
+				<h2><?php echo esc_html( $state['title'] ); ?></h2>
+				<p><?php echo esc_html( $state['text'] ); ?></p>
+			</div>
+			<ul class="orderwarden-channels" aria-label="<?php esc_attr_e( 'Checkout protection', 'orderwarden' ); ?>">
+				<?php
+				foreach ( array( 'classic', 'store_api', 'pay' ) as $channel ) :
+					if ( 'off' === $mode ) {
+						$dot   = 'is-off';
+						$label = __( 'off', 'orderwarden' );
+					} elseif ( OrderWarden_Guard::is_enforcing( $channel ) ) {
+						$dot   = 'is-on';
+						$label = __( 'protected', 'orderwarden' );
+					} else {
+						$dot   = '';
+						$label = __( 'learning', 'orderwarden' );
+					}
+					?>
+					<li>
+						<span class="orderwarden-dot <?php echo esc_attr( $dot ); ?>" aria-hidden="true"></span>
+						<?php
+						/* translators: 1: checkout type, 2: protection state */
+						echo esc_html( sprintf( __( '%1$s: %2$s', 'orderwarden' ), self::channel_label( $channel ), $label ) );
+						?>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</section>
+		<?php
 	}
 
 	/**
@@ -227,92 +327,132 @@ class OrderWarden_Admin {
 	 * @return void
 	 */
 	private static function render_overview() {
-		$mode     = OrderWarden_Settings::get( 'mode' );
-		$armed    = OrderWarden_Guard::armed();
 		$lifetime = OrderWarden_Logger::lifetime();
 		$recent   = OrderWarden_Logger::recent( 20 );
 		$failed   = OrderWarden_Cleaner::count( array( 'guest_only' => false ) );
+		$figures  = array(
+			__( 'Blocked today', 'orderwarden' )             => OrderWarden_Logger::count_since( 'blocked', 24 ),
+			__( 'Blocked this week', 'orderwarden' )         => OrderWarden_Logger::count_since( 'blocked', 24 * 7 ),
+			__( 'Blocked since install', 'orderwarden' )     => isset( $lifetime['blocked'] ) ? (int) $lifetime['blocked'] : 0,
+			__( 'Real checkouts today', 'orderwarden' )      => OrderWarden_Logger::count_since( 'verified', 24 ),
+		);
+
+		self::render_banner();
 		?>
-		<?php if ( 'auto' === $mode && empty( $armed ) ) : ?>
-			<div class="notice notice-info inline"><p>
-				<strong><?php esc_html_e( 'OrderWarden is learning.', 'orderwarden' ); ?></strong>
-				<?php esc_html_e( 'It starts blocking on each checkout type as soon as it sees one real checkout there. Place a test order in a normal browser to switch protection on now.', 'orderwarden' ); ?>
-			</p></div>
-		<?php elseif ( 'learning' === $mode ) : ?>
-			<div class="notice notice-warning inline"><p><?php esc_html_e( 'Learning mode: OrderWarden is only logging what it would block. Nothing is being blocked.', 'orderwarden' ); ?></p></div>
-		<?php elseif ( 'off' === $mode ) : ?>
-			<div class="notice notice-error inline"><p><?php esc_html_e( 'Protection is switched off.', 'orderwarden' ); ?></p></div>
-		<?php endif; ?>
-
-		<div class="orderwarden-cards">
-			<div class="orderwarden-card"><span class="num"><?php echo esc_html( number_format_i18n( OrderWarden_Logger::count_since( 'blocked', 24 ) ) ); ?></span><span class="label"><?php esc_html_e( 'Blocked, last 24 hours', 'orderwarden' ); ?></span></div>
-			<div class="orderwarden-card"><span class="num"><?php echo esc_html( number_format_i18n( OrderWarden_Logger::count_since( 'blocked', 24 * 7 ) ) ); ?></span><span class="label"><?php esc_html_e( 'Blocked, last 7 days', 'orderwarden' ); ?></span></div>
-			<div class="orderwarden-card"><span class="num"><?php echo esc_html( number_format_i18n( isset( $lifetime['blocked'] ) ? (int) $lifetime['blocked'] : 0 ) ); ?></span><span class="label"><?php esc_html_e( 'Blocked since install', 'orderwarden' ); ?></span></div>
-			<div class="orderwarden-card"><span class="num"><?php echo esc_html( number_format_i18n( OrderWarden_Logger::count_since( 'verified', 24 ) ) ); ?></span><span class="label"><?php esc_html_e( 'Genuine checkouts, last 24 hours', 'orderwarden' ); ?></span></div>
-		</div>
-
-		<h2><?php esc_html_e( 'Protection status', 'orderwarden' ); ?></h2>
-		<table class="widefat striped orderwarden-status">
-			<tbody>
-			<?php foreach ( array( 'classic', 'store_api', 'pay' ) as $channel ) : ?>
-				<tr>
-					<td><?php echo esc_html( self::channel_label( $channel ) ); ?></td>
-					<td>
-						<?php if ( OrderWarden_Guard::is_enforcing( $channel ) ) : ?>
-							<span class="orderwarden-pill on"><?php esc_html_e( 'Protected', 'orderwarden' ); ?></span>
-						<?php elseif ( 'off' === $mode ) : ?>
-							<span class="orderwarden-pill off"><?php esc_html_e( 'Off', 'orderwarden' ); ?></span>
-						<?php else : ?>
-							<span class="orderwarden-pill learn"><?php esc_html_e( 'Learning', 'orderwarden' ); ?></span>
-						<?php endif; ?>
-					</td>
-				</tr>
-			<?php endforeach; ?>
-			</tbody>
-		</table>
-
-		<?php if ( $failed > 0 ) : ?>
-			<p class="orderwarden-cleanup-hint">
-				<?php
-				echo wp_kses(
-					sprintf(
-						/* translators: %s: number of failed orders */
-						esc_html__( 'Your store has %s failed orders.', 'orderwarden' ),
-						'<strong>' . esc_html( number_format_i18n( $failed ) ) . '</strong>'
-					),
-					self::allowed_html()
-				);
-				?>
-				<a href="<?php echo esc_url( self::url( 'cleanup' ) ); ?>"><?php esc_html_e( 'Clean them up', 'orderwarden' ); ?> &rarr;</a>
-			</p>
-		<?php endif; ?>
-
-		<h2><?php esc_html_e( 'Recent blocked attempts', 'orderwarden' ); ?></h2>
-		<?php if ( empty( $recent ) ) : ?>
-			<p><?php esc_html_e( 'Nothing yet. That is good news.', 'orderwarden' ); ?></p>
-		<?php else : ?>
-			<table class="widefat striped">
-				<thead><tr>
-					<th><?php esc_html_e( 'Time', 'orderwarden' ); ?></th>
-					<th><?php esc_html_e( 'Result', 'orderwarden' ); ?></th>
-					<th><?php esc_html_e( 'Reason', 'orderwarden' ); ?></th>
-					<th><?php esc_html_e( 'Where', 'orderwarden' ); ?></th>
-					<th><?php esc_html_e( 'IP', 'orderwarden' ); ?></th>
-				</tr></thead>
-				<tbody>
-				<?php foreach ( $recent as $row ) : ?>
-					<tr>
-						<td><?php echo esc_html( get_date_from_gmt( $row['created_at'], get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) ) ); ?></td>
-						<td><?php echo 'blocked' === $row['event'] ? esc_html__( 'Blocked', 'orderwarden' ) : esc_html__( 'Would block (learning)', 'orderwarden' ); ?></td>
-						<td><?php echo esc_html( self::reason_label( $row['reason'] ) ); ?></td>
-						<td><?php echo esc_html( self::channel_label( $row['channel'] ) ); ?></td>
-						<td><code><?php echo esc_html( $row['ip_masked'] ); ?></code></td>
-					</tr>
+		<section class="orderwarden-panel">
+			<dl class="orderwarden-figures">
+				<?php foreach ( $figures as $label => $value ) : ?>
+					<div>
+						<dt><?php echo esc_html( $label ); ?></dt>
+						<dd><?php echo esc_html( number_format_i18n( $value ) ); ?></dd>
+					</div>
 				<?php endforeach; ?>
-				</tbody>
-			</table>
-		<?php endif; ?>
+			</dl>
+			<?php if ( $failed > 0 ) : ?>
+				<div class="orderwarden-callout">
+					<p>
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: %s: number of failed orders */
+								_n( 'Your store has %s failed order. Attacks usually leave many behind.', 'Your store has %s failed orders. Attacks usually leave many behind.', $failed, 'orderwarden' ),
+								number_format_i18n( $failed )
+							)
+						);
+						?>
+					</p>
+					<a class="orderwarden-link" href="<?php echo esc_url( self::url( 'cleanup' ) ); ?>"><?php esc_html_e( 'Clean up failed orders', 'orderwarden' ); ?></a>
+				</div>
+			<?php endif; ?>
+		</section>
+
+		<section class="orderwarden-panel">
+			<div class="orderwarden-panel-head">
+				<h2><?php esc_html_e( 'Recent blocked attempts', 'orderwarden' ); ?></h2>
+				<p><?php esc_html_e( 'IP addresses are shortened for privacy.', 'orderwarden' ); ?></p>
+			</div>
+			<?php if ( empty( $recent ) ) : ?>
+				<div class="orderwarden-empty">
+					<strong><?php esc_html_e( 'No attempts so far', 'orderwarden' ); ?></strong>
+					<?php esc_html_e( 'When a bot tries your checkout, it shows up here with the reason it was stopped.', 'orderwarden' ); ?>
+				</div>
+			<?php else : ?>
+				<table class="orderwarden-table">
+					<thead><tr>
+						<th scope="col"><?php esc_html_e( 'When', 'orderwarden' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Result', 'orderwarden' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Why', 'orderwarden' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Where', 'orderwarden' ); ?></th>
+						<th scope="col" class="is-ip"><?php esc_html_e( 'IP', 'orderwarden' ); ?></th>
+					</tr></thead>
+					<tbody>
+					<?php foreach ( $recent as $row ) : ?>
+						<tr>
+							<td class="is-time">
+								<?php
+								echo esc_html(
+									sprintf(
+										/* translators: %s: human time difference, e.g. 5 mins */
+										__( '%s ago', 'orderwarden' ),
+										human_time_diff( strtotime( $row['created_at'] . ' UTC' ) )
+									)
+								);
+								?>
+							</td>
+							<td>
+								<?php if ( 'blocked' === $row['event'] ) : ?>
+									<span class="orderwarden-tag is-blocked"><?php esc_html_e( 'Blocked', 'orderwarden' ); ?></span>
+								<?php else : ?>
+									<span class="orderwarden-tag is-would"><?php esc_html_e( 'Would block', 'orderwarden' ); ?></span>
+								<?php endif; ?>
+							</td>
+							<td><?php echo esc_html( self::reason_label( $row['reason'] ) ); ?></td>
+							<td><?php echo esc_html( self::channel_label( $row['channel'] ) ); ?></td>
+							<td class="is-ip"><code><?php echo esc_html( $row['ip_masked'] ); ?></code></td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+		</section>
 		<?php
+	}
+
+	/**
+	 * A yes/no switch.
+	 *
+	 * @param string $key   Setting key.
+	 * @param string $label Visible label.
+	 * @return void
+	 */
+	private static function field_switch( $key, $label ) {
+		$name = OrderWarden_Settings::OPTION . '[' . $key . ']';
+		?>
+		<label class="orderwarden-switch">
+			<input type="checkbox" name="<?php echo esc_attr( $name ); ?>" value="yes" <?php checked( OrderWarden_Settings::get( $key ), 'yes' ); ?>>
+			<span><?php echo esc_html( $label ); ?></span>
+		</label>
+		<?php
+	}
+
+	/**
+	 * A number input for use inside a sentence.
+	 *
+	 * @param string $key   Setting key.
+	 * @param int    $min   Minimum.
+	 * @param int    $max   Maximum.
+	 * @param string $label Accessible label.
+	 * @return string
+	 */
+	private static function field_number( $key, $min, $max, $label ) {
+		return sprintf(
+			'<input type="number" min="%1$d" max="%2$d" name="%3$s" value="%4$s" aria-label="%5$s">',
+			(int) $min,
+			(int) $max,
+			esc_attr( OrderWarden_Settings::OPTION . '[' . $key . ']' ),
+			esc_attr( OrderWarden_Settings::get( $key ) ),
+			esc_attr( $label )
+		);
 	}
 
 	/**
@@ -323,91 +463,151 @@ class OrderWarden_Admin {
 	private static function render_settings() {
 		$s    = OrderWarden_Settings::all();
 		$name = OrderWarden_Settings::OPTION;
+		settings_errors();
 		?>
-		<?php settings_errors(); ?>
 		<form method="post" action="options.php">
 			<?php settings_fields( 'orderwarden' ); ?>
-			<table class="form-table" role="presentation">
-				<tr>
-					<th scope="row"><label for="ow-mode"><?php esc_html_e( 'Protection mode', 'orderwarden' ); ?></label></th>
-					<td>
+
+			<section class="orderwarden-panel">
+				<div class="orderwarden-panel-head"><h2><?php esc_html_e( 'Protection', 'orderwarden' ); ?></h2></div>
+
+				<div class="orderwarden-row">
+					<div class="orderwarden-row-label">
+						<label for="ow-mode"><?php esc_html_e( 'Mode', 'orderwarden' ); ?></label>
+						<p><?php esc_html_e( 'How OrderWarden treats checkout requests.', 'orderwarden' ); ?></p>
+					</div>
+					<div class="orderwarden-row-control">
 						<select id="ow-mode" name="<?php echo esc_attr( $name ); ?>[mode]">
 							<option value="auto" <?php selected( $s['mode'], 'auto' ); ?>><?php esc_html_e( 'Automatic (recommended)', 'orderwarden' ); ?></option>
 							<option value="protect" <?php selected( $s['mode'], 'protect' ); ?>><?php esc_html_e( 'Always protect', 'orderwarden' ); ?></option>
-							<option value="learning" <?php selected( $s['mode'], 'learning' ); ?>><?php esc_html_e( 'Learning only (log, never block)', 'orderwarden' ); ?></option>
+							<option value="learning" <?php selected( $s['mode'], 'learning' ); ?>><?php esc_html_e( 'Learning only, never block', 'orderwarden' ); ?></option>
 							<option value="off" <?php selected( $s['mode'], 'off' ); ?>><?php esc_html_e( 'Off', 'orderwarden' ); ?></option>
 						</select>
-						<p class="description"><?php esc_html_e( 'Automatic waits until it has seen one genuine checkout of each type before it blocks anything, so real customers are never turned away by a theme or caching problem.', 'orderwarden' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Failed payment limit', 'orderwarden' ); ?></th>
-					<td>
-						<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[velocity_enabled]" value="yes" <?php checked( $s['velocity_enabled'], 'yes' ); ?>> <?php esc_html_e( 'Block an address after repeated failed payments', 'orderwarden' ); ?></label>
+						<p class="orderwarden-help"><?php esc_html_e( 'Automatic waits until it has seen one real order on each checkout before it blocks anything there, so a theme or cache problem can never turn customers away.', 'orderwarden' ); ?></p>
+					</div>
+				</div>
+
+				<div class="orderwarden-row">
+					<div class="orderwarden-row-label">
+						<?php esc_html_e( 'Failed payment limit', 'orderwarden' ); ?>
+						<p><?php esc_html_e( 'Catches bots that open your checkout in a real browser.', 'orderwarden' ); ?></p>
+					</div>
+					<div class="orderwarden-row-control">
+						<?php self::field_switch( 'velocity_enabled', __( 'Turn away an address after repeated failed payments', 'orderwarden' ) ); ?>
 						<p>
 							<?php
 							echo wp_kses(
 								sprintf(
-									/* translators: 1: number input, 2: minutes input, 3: minutes input */
-									esc_html__( 'Block for %3$s minutes after %1$s failed payments within %2$s minutes.', 'orderwarden' ),
-									'<input type="number" min="1" max="50" class="small-text" name="' . esc_attr( $name ) . '[velocity_limit]" value="' . esc_attr( $s['velocity_limit'] ) . '">',
-									'<input type="number" min="1" max="1440" class="small-text" name="' . esc_attr( $name ) . '[velocity_window]" value="' . esc_attr( $s['velocity_window'] ) . '">',
-									'<input type="number" min="1" max="10080" class="small-text" name="' . esc_attr( $name ) . '[velocity_block]" value="' . esc_attr( $s['velocity_block'] ) . '">'
+									/* translators: 1: number of failed payments, 2: minutes window, 3: minutes blocked */
+									esc_html__( 'After %1$s failed payments within %2$s minutes, block that address for %3$s minutes.', 'orderwarden' ),
+									self::field_number( 'velocity_limit', 1, 50, __( 'Failed payments', 'orderwarden' ) ),
+									self::field_number( 'velocity_window', 1, 1440, __( 'Within minutes', 'orderwarden' ) ),
+									self::field_number( 'velocity_block', 1, 10080, __( 'Block for minutes', 'orderwarden' ) )
 								),
 								self::allowed_html()
 							);
 							?>
 						</p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Returning customers', 'orderwarden' ); ?></th>
-					<td><label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[trust_customers]" value="yes" <?php checked( $s['trust_customers'], 'yes' ); ?>> <?php esc_html_e( 'Never block logged-in customers who already have a paid order', 'orderwarden' ); ?></label></td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Proxy / Cloudflare', 'orderwarden' ); ?></th>
-					<td>
-						<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[use_proxy_headers]" value="yes" <?php checked( $s['use_proxy_headers'], 'yes' ); ?>> <?php esc_html_e( 'My site is behind Cloudflare or another proxy', 'orderwarden' ); ?></label>
-						<p class="description"><?php esc_html_e( 'Reads the visitor IP from CF-Connecting-IP / X-Forwarded-For. Only turn this on if a proxy really sits in front of your site, otherwise visitors can fake their IP.', 'orderwarden' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="ow-allow"><?php esc_html_e( 'Never block these IPs', 'orderwarden' ); ?></label></th>
-					<td>
-						<textarea id="ow-allow" rows="4" class="large-text code" name="<?php echo esc_attr( $name ); ?>[ip_allowlist]"><?php echo esc_textarea( $s['ip_allowlist'] ); ?></textarea>
-						<p class="description"><?php esc_html_e( 'One IP or CIDR range per line, for example 203.0.113.10 or 203.0.113.0/24.', 'orderwarden' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Attack alerts', 'orderwarden' ); ?></th>
-					<td>
-						<label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[alert_enabled]" value="yes" <?php checked( $s['alert_enabled'], 'yes' ); ?>> <?php esc_html_e( 'Email me when an attack starts', 'orderwarden' ); ?></label>
+					</div>
+				</div>
+
+				<div class="orderwarden-row">
+					<div class="orderwarden-row-label">
+						<?php esc_html_e( 'Returning customers', 'orderwarden' ); ?>
+						<p><?php esc_html_e( 'People you already know.', 'orderwarden' ); ?></p>
+					</div>
+					<div class="orderwarden-row-control">
+						<?php self::field_switch( 'trust_customers', __( 'Never block logged-in customers who have a paid order', 'orderwarden' ) ); ?>
+					</div>
+				</div>
+			</section>
+
+			<section class="orderwarden-panel">
+				<div class="orderwarden-panel-head"><h2><?php esc_html_e( 'Alerts', 'orderwarden' ); ?></h2></div>
+
+				<div class="orderwarden-row">
+					<div class="orderwarden-row-label">
+						<?php esc_html_e( 'Attack email', 'orderwarden' ); ?>
+						<p><?php esc_html_e( 'At most one email per hour.', 'orderwarden' ); ?></p>
+					</div>
+					<div class="orderwarden-row-control">
+						<?php self::field_switch( 'alert_enabled', __( 'Email me when an attack starts', 'orderwarden' ) ); ?>
 						<p>
 							<?php
 							echo wp_kses(
 								sprintf(
-									/* translators: %s: number input */
-									esc_html__( 'Send an alert after %s blocked attempts within 10 minutes (at most one email per hour).', 'orderwarden' ),
-									'<input type="number" min="5" max="10000" class="small-text" name="' . esc_attr( $name ) . '[alert_threshold]" value="' . esc_attr( $s['alert_threshold'] ) . '">'
+									/* translators: %s: number of blocked attempts */
+									esc_html__( 'Send it after %s blocked attempts within 10 minutes.', 'orderwarden' ),
+									self::field_number( 'alert_threshold', 5, 10000, __( 'Blocked attempts', 'orderwarden' ) )
 								),
 								self::allowed_html()
 							);
 							?>
 						</p>
-						<input type="email" class="regular-text" placeholder="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>" name="<?php echo esc_attr( $name ); ?>[alert_email]" value="<?php echo esc_attr( $s['alert_email'] ); ?>">
-						<p class="description"><?php esc_html_e( 'Leave empty to use the site admin email.', 'orderwarden' ); ?></p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="ow-retention"><?php esc_html_e( 'Keep logs for', 'orderwarden' ); ?></label></th>
-					<td><input id="ow-retention" type="number" min="1" max="365" class="small-text" name="<?php echo esc_attr( $name ); ?>[log_retention_days]" value="<?php echo esc_attr( $s['log_retention_days'] ); ?>"> <?php esc_html_e( 'days', 'orderwarden' ); ?></td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Uninstall', 'orderwarden' ); ?></th>
-					<td><label><input type="checkbox" name="<?php echo esc_attr( $name ); ?>[delete_data]" value="yes" <?php checked( $s['delete_data'], 'yes' ); ?>> <?php esc_html_e( 'Delete all OrderWarden data when the plugin is deleted', 'orderwarden' ); ?></label></td>
-				</tr>
-			</table>
-			<?php submit_button(); ?>
+						<input type="email" aria-label="<?php esc_attr_e( 'Alert email address', 'orderwarden' ); ?>" placeholder="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>" name="<?php echo esc_attr( $name ); ?>[alert_email]" value="<?php echo esc_attr( $s['alert_email'] ); ?>">
+						<p class="orderwarden-help"><?php esc_html_e( 'Leave empty to use the site admin email.', 'orderwarden' ); ?></p>
+					</div>
+				</div>
+			</section>
+
+			<section class="orderwarden-panel">
+				<div class="orderwarden-panel-head"><h2><?php esc_html_e( 'Advanced', 'orderwarden' ); ?></h2></div>
+
+				<div class="orderwarden-row">
+					<div class="orderwarden-row-label">
+						<?php esc_html_e( 'Cloudflare or proxy', 'orderwarden' ); ?>
+						<p><?php esc_html_e( 'Where visitor IP addresses come from.', 'orderwarden' ); ?></p>
+					</div>
+					<div class="orderwarden-row-control">
+						<?php self::field_switch( 'use_proxy_headers', __( 'My site is behind Cloudflare or another proxy', 'orderwarden' ) ); ?>
+						<p class="orderwarden-help"><?php esc_html_e( 'Only turn this on if a proxy really sits in front of your site. Otherwise visitors could fake their address.', 'orderwarden' ); ?></p>
+					</div>
+				</div>
+
+				<div class="orderwarden-row">
+					<div class="orderwarden-row-label">
+						<label for="ow-allow"><?php esc_html_e( 'Never block these IPs', 'orderwarden' ); ?></label>
+						<p><?php esc_html_e( 'For your office, staff or a headless checkout.', 'orderwarden' ); ?></p>
+					</div>
+					<div class="orderwarden-row-control">
+						<textarea id="ow-allow" rows="4" name="<?php echo esc_attr( $name ); ?>[ip_allowlist]" placeholder="203.0.113.10"><?php echo esc_textarea( $s['ip_allowlist'] ); ?></textarea>
+						<p class="orderwarden-help"><?php esc_html_e( 'One address or range per line, for example 203.0.113.10 or 203.0.113.0/24.', 'orderwarden' ); ?></p>
+					</div>
+				</div>
+
+				<div class="orderwarden-row">
+					<div class="orderwarden-row-label">
+						<?php esc_html_e( 'Activity log', 'orderwarden' ); ?>
+					</div>
+					<div class="orderwarden-row-control">
+						<p>
+							<?php
+							echo wp_kses(
+								sprintf(
+									/* translators: %s: number of days */
+									esc_html__( 'Keep blocked attempts for %s days.', 'orderwarden' ),
+									self::field_number( 'log_retention_days', 1, 365, __( 'Days', 'orderwarden' ) )
+								),
+								self::allowed_html()
+							);
+							?>
+						</p>
+					</div>
+				</div>
+
+				<div class="orderwarden-row">
+					<div class="orderwarden-row-label">
+						<?php esc_html_e( 'When you delete the plugin', 'orderwarden' ); ?>
+					</div>
+					<div class="orderwarden-row-control">
+						<?php self::field_switch( 'delete_data', __( 'Also delete its settings and activity log', 'orderwarden' ) ); ?>
+					</div>
+				</div>
+
+				<div class="orderwarden-actions">
+					<?php submit_button( __( 'Save settings', 'orderwarden' ), 'orderwarden-btn', 'submit', false ); ?>
+				</div>
+			</section>
 		</form>
 		<?php
 	}
@@ -421,70 +621,208 @@ class OrderWarden_Admin {
 		$state = OrderWarden_Cleaner::state();
 		$all   = OrderWarden_Cleaner::count( array( 'guest_only' => false ) );
 		$guest = OrderWarden_Cleaner::count( array( 'guest_only' => true ) );
-		?>
-		<p><?php esc_html_e( 'Card-testing attacks leave hundreds or thousands of failed orders behind. Remove them here in the background, without timeouts. Failed orders can also belong to real customers whose card was declined, so start with guest orders.', 'orderwarden' ); ?></p>
 
-		<?php if ( ! empty( $state['running'] ) ) : ?>
-			<div class="notice notice-info inline"><p>
-				<?php
-				printf(
-					/* translators: 1: orders removed so far, 2: total orders */
-					esc_html__( 'Cleaning up: %1$s of about %2$s orders removed. This page refreshes on its own.', 'orderwarden' ),
-					esc_html( number_format_i18n( (int) $state['done'] ) ),
-					esc_html( number_format_i18n( (int) $state['total'] ) )
-				);
-				?>
-			</p></div>
+		if ( ! empty( $state['running'] ) ) :
+			$total   = max( 1, (int) $state['total'] );
+			$percent = min( 100, (int) round( ( (int) $state['done'] / $total ) * 100 ) );
+			?>
 			<meta http-equiv="refresh" content="5">
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<input type="hidden" name="action" value="orderwarden_cleanup_cancel">
-				<?php wp_nonce_field( 'orderwarden_cleanup_cancel' ); ?>
-				<?php submit_button( __( 'Stop', 'orderwarden' ), 'secondary' ); ?>
-			</form>
+			<section class="orderwarden-panel">
+				<div class="orderwarden-panel-head"><h2><?php esc_html_e( 'Cleaning up failed orders', 'orderwarden' ); ?></h2></div>
+				<div class="orderwarden-panel-body">
+					<div class="orderwarden-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo esc_attr( $percent ); ?>"><span style="width: <?php echo esc_attr( $percent ); ?>%"></span></div>
+					<p>
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: 1: orders removed so far, 2: total orders */
+								__( '%1$s of about %2$s orders removed. This page updates by itself, and you can leave it.', 'orderwarden' ),
+								number_format_i18n( (int) $state['done'] ),
+								number_format_i18n( (int) $state['total'] )
+							)
+						);
+						?>
+					</p>
+				</div>
+				<form class="orderwarden-actions" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="orderwarden_cleanup_cancel">
+					<?php wp_nonce_field( 'orderwarden_cleanup_cancel' ); ?>
+					<?php submit_button( __( 'Stop cleanup', 'orderwarden' ), 'orderwarden-btn-secondary', 'submit', false ); ?>
+				</form>
+			</section>
 			<?php
 			return;
 		endif;
-		?>
 
-		<?php if ( ! empty( $state['finished'] ) ) : ?>
+		if ( ! empty( $state['finished'] ) ) :
+			?>
 			<div class="notice notice-success inline"><p>
 				<?php
-				printf(
-					/* translators: %s: number of orders */
-					esc_html__( 'Last cleanup finished: %s orders removed.', 'orderwarden' ),
-					esc_html( number_format_i18n( (int) $state['done'] ) )
+				echo esc_html(
+					sprintf(
+						/* translators: %s: number of orders */
+						_n( 'Cleanup finished. %s order removed.', 'Cleanup finished. %s orders removed.', (int) $state['done'], 'orderwarden' ),
+						number_format_i18n( (int) $state['done'] )
+					)
 				);
 				?>
 			</p></div>
-		<?php endif; ?>
+			<?php
+		endif;
+		?>
+		<section class="orderwarden-panel">
+			<div class="orderwarden-panel-head">
+				<h2><?php esc_html_e( 'Failed orders', 'orderwarden' ); ?></h2>
+				<p><?php esc_html_e( 'Runs in the background, so large numbers are fine.', 'orderwarden' ); ?></p>
+			</div>
+			<dl class="orderwarden-figures">
+				<div>
+					<dt><?php esc_html_e( 'All failed orders', 'orderwarden' ); ?></dt>
+					<dd><?php echo esc_html( number_format_i18n( $all ) ); ?></dd>
+				</div>
+				<div>
+					<dt><?php esc_html_e( 'From guests', 'orderwarden' ); ?></dt>
+					<dd><?php echo esc_html( number_format_i18n( $guest ) ); ?></dd>
+				</div>
+			</dl>
 
-		<table class="widefat striped orderwarden-status">
-			<tbody>
-				<tr><td><?php esc_html_e( 'Failed orders (all)', 'orderwarden' ); ?></td><td><strong><?php echo esc_html( number_format_i18n( $all ) ); ?></strong></td></tr>
-				<tr><td><?php esc_html_e( 'Failed guest orders (no customer account)', 'orderwarden' ); ?></td><td><strong><?php echo esc_html( number_format_i18n( $guest ) ); ?></strong></td></tr>
-			</tbody>
-		</table>
+			<?php if ( 0 === $all ) : ?>
+				<div class="orderwarden-empty">
+					<strong><?php esc_html_e( 'Nothing to clean up', 'orderwarden' ); ?></strong>
+					<?php esc_html_e( 'Your store has no failed orders right now.', 'orderwarden' ); ?>
+				</div>
+			<?php else : ?>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="orderwarden_cleanup_start">
+					<?php wp_nonce_field( 'orderwarden_cleanup_start' ); ?>
 
-		<?php if ( $all > 0 ) : ?>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="orderwarden-cleanup-form">
-			<input type="hidden" name="action" value="orderwarden_cleanup_start">
-			<?php wp_nonce_field( 'orderwarden_cleanup_start' ); ?>
-			<p><label><input type="checkbox" name="guest_only" value="1" checked> <?php esc_html_e( 'Only guest orders', 'orderwarden' ); ?></label></p>
-			<p>
-				<label>
-					<?php esc_html_e( 'Only orders older than', 'orderwarden' ); ?>
-					<input type="number" min="0" max="3650" class="small-text" name="older_than_days" value="0">
-					<?php esc_html_e( 'days (0 = any age)', 'orderwarden' ); ?>
-				</label>
-			</p>
-			<fieldset>
-				<p><label><input type="radio" name="permanent" value="0" checked> <?php esc_html_e( 'Move to Trash (can be restored)', 'orderwarden' ); ?></label></p>
-				<p><label><input type="radio" name="permanent" value="1"> <?php esc_html_e( 'Delete permanently (cannot be undone)', 'orderwarden' ); ?></label></p>
-			</fieldset>
-			<p><label><input type="checkbox" name="confirm" value="1" required> <?php esc_html_e( 'I understand these failed orders will be removed.', 'orderwarden' ); ?></label></p>
-			<?php submit_button( __( 'Start cleanup', 'orderwarden' ), 'primary' ); ?>
-		</form>
-		<?php endif; ?>
+					<div class="orderwarden-row">
+						<div class="orderwarden-row-label">
+							<?php esc_html_e( 'Which orders', 'orderwarden' ); ?>
+							<p><?php esc_html_e( 'A failed order can also be a real customer whose card was declined. Guest orders are the safe place to start.', 'orderwarden' ); ?></p>
+						</div>
+						<div class="orderwarden-row-control">
+							<label class="orderwarden-switch">
+								<input type="checkbox" name="guest_only" value="1" checked>
+								<span><?php esc_html_e( 'Only orders from guests, not from customer accounts', 'orderwarden' ); ?></span>
+							</label>
+							<p>
+								<?php
+								echo wp_kses(
+									sprintf(
+										/* translators: %s: number of days */
+										esc_html__( 'Only orders older than %s days. Use 0 for any age.', 'orderwarden' ),
+										'<input type="number" min="0" max="3650" name="older_than_days" value="0" aria-label="' . esc_attr__( 'Days', 'orderwarden' ) . '">'
+									),
+									self::allowed_html()
+								);
+								?>
+							</p>
+						</div>
+					</div>
+
+					<div class="orderwarden-row">
+						<div class="orderwarden-row-label">
+							<?php esc_html_e( 'What happens to them', 'orderwarden' ); ?>
+						</div>
+						<div class="orderwarden-row-control">
+							<label class="orderwarden-choice"><input type="radio" name="permanent" value="0" checked> <span><?php esc_html_e( 'Move to Trash. You can restore them for 30 days.', 'orderwarden' ); ?></span></label>
+							<label class="orderwarden-choice"><input type="radio" name="permanent" value="1"> <span><?php esc_html_e( 'Delete permanently. This cannot be undone.', 'orderwarden' ); ?></span></label>
+						</div>
+					</div>
+
+					<div class="orderwarden-actions">
+						<label class="orderwarden-choice"><input type="checkbox" name="confirm" value="1" required> <span><?php esc_html_e( 'I understand these failed orders will be removed.', 'orderwarden' ); ?></span></label>
+						<?php submit_button( __( 'Start cleanup', 'orderwarden' ), 'orderwarden-btn', 'submit', false ); ?>
+					</div>
+				</form>
+			<?php endif; ?>
+		</section>
+		<?php
+	}
+
+	/**
+	 * Small check icon for the checklist.
+	 *
+	 * @return void
+	 */
+	private static function check_icon() {
+		echo '<svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 10.4l2.6 2.6L14 7.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+	}
+
+	/**
+	 * Checklist tab.
+	 *
+	 * @return void
+	 */
+	private static function render_checklist() {
+		$enabled = array();
+		if ( function_exists( 'WC' ) && WC()->payment_gateways() ) {
+			foreach ( WC()->payment_gateways()->payment_gateways() as $id => $gateway ) {
+				if ( isset( $gateway->enabled ) && 'yes' === $gateway->enabled ) {
+					$enabled[] = (string) $id;
+				}
+			}
+		}
+
+		$gateway_items = array();
+		foreach ( self::gateway_tips() as $prefix => $info ) {
+			foreach ( $enabled as $id ) {
+				if ( 0 === strpos( $id, $prefix ) ) {
+					$gateway_items[] = $info;
+					break;
+				}
+			}
+		}
+
+		$general = array(
+			array(
+				'title' => __( 'Cloudflare, free plan', 'orderwarden' ),
+				'tip'   => __( 'Turn on Security > Bots > Bot Fight Mode, and add one rate limiting rule for your checkout page and for /?wc-ajax=checkout.', 'orderwarden' ),
+			),
+			array(
+				'title' => __( 'WooCommerce rate limit', 'orderwarden' ),
+				'tip'   => __( 'If you use the block checkout, turn on WooCommerce > Settings > Advanced > Features > Rate limiting Checkout block and Store API.', 'orderwarden' ),
+			),
+			array(
+				'title' => __( 'Guest checkout', 'orderwarden' ),
+				'tip'   => __( 'If it suits your store, turn off guest checkout in WooCommerce > Settings > Accounts & Privacy so bots must create an account first.', 'orderwarden' ),
+			),
+			array(
+				'title' => __( 'Updates', 'orderwarden' ),
+				'tip'   => __( 'Keep WooCommerce and your payment plugin up to date. Card testing often targets old gateway versions.', 'orderwarden' ),
+			),
+		);
+		?>
+		<section class="orderwarden-panel">
+			<div class="orderwarden-panel-head">
+				<h2><?php esc_html_e( 'Your payment gateways', 'orderwarden' ); ?></h2>
+				<p><?php esc_html_e( 'Free settings that add a second layer at the gateway.', 'orderwarden' ); ?></p>
+			</div>
+			<?php if ( empty( $gateway_items ) ) : ?>
+				<div class="orderwarden-empty">
+					<strong><?php esc_html_e( 'No tips for your gateways yet', 'orderwarden' ); ?></strong>
+					<?php esc_html_e( 'Ask your payment provider whether it offers velocity limits and CVC checks, and turn them on.', 'orderwarden' ); ?>
+				</div>
+			<?php else : ?>
+				<ul class="orderwarden-checklist">
+					<?php foreach ( $gateway_items as $item ) : ?>
+						<li><?php self::check_icon(); ?><div><strong><?php echo esc_html( $item['title'] ); ?></strong><p><?php echo esc_html( $item['tip'] ); ?></p></div></li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
+		</section>
+
+		<section class="orderwarden-panel">
+			<div class="orderwarden-panel-head">
+				<h2><?php esc_html_e( 'For every store', 'orderwarden' ); ?></h2>
+			</div>
+			<ul class="orderwarden-checklist">
+				<?php foreach ( $general as $item ) : ?>
+					<li><?php self::check_icon(); ?><div><strong><?php echo esc_html( $item['title'] ); ?></strong><p><?php echo esc_html( $item['tip'] ); ?></p></div></li>
+				<?php endforeach; ?>
+			</ul>
+		</section>
 		<?php
 	}
 
@@ -556,54 +894,5 @@ class OrderWarden_Admin {
 				'tip'   => __( 'In the Braintree Control Panel enable Advanced Fraud Protection and the CVV and AVS rules.', 'orderwarden' ),
 			),
 		);
-	}
-
-	/**
-	 * Checklist tab.
-	 *
-	 * @return void
-	 */
-	private static function render_checklist() {
-		$enabled = array();
-		if ( function_exists( 'WC' ) && WC()->payment_gateways() ) {
-			foreach ( WC()->payment_gateways()->payment_gateways() as $id => $gateway ) {
-				if ( isset( $gateway->enabled ) && 'yes' === $gateway->enabled ) {
-					$enabled[] = (string) $id;
-				}
-			}
-		}
-		?>
-		<p><?php esc_html_e( 'OrderWarden stops bots at your checkout. These free settings add a second layer at your payment gateway and in front of your site.', 'orderwarden' ); ?></p>
-
-		<h2><?php esc_html_e( 'Your payment gateways', 'orderwarden' ); ?></h2>
-		<?php
-		$shown = 0;
-		foreach ( self::gateway_tips() as $prefix => $info ) {
-			$match = false;
-			foreach ( $enabled as $id ) {
-				if ( 0 === strpos( $id, $prefix ) ) {
-					$match = true;
-					break;
-				}
-			}
-			if ( ! $match ) {
-				continue;
-			}
-			++$shown;
-			echo '<div class="orderwarden-tip"><h3>' . esc_html( $info['title'] ) . '</h3><p>' . esc_html( $info['tip'] ) . '</p></div>';
-		}
-		if ( 0 === $shown ) {
-			echo '<p>' . esc_html__( 'No gateway-specific tips for your enabled gateways. Ask your gateway whether it offers velocity limits or CVC checks.', 'orderwarden' ) . '</p>';
-		}
-		?>
-
-		<h2><?php esc_html_e( 'Everyone', 'orderwarden' ); ?></h2>
-		<ol class="orderwarden-list">
-			<li><?php esc_html_e( 'Cloudflare (free plan): turn on Security > Bots > Bot Fight Mode, and add one rate-limiting rule for your checkout URL and for /?wc-ajax=checkout.', 'orderwarden' ); ?></li>
-			<li><?php esc_html_e( 'If you use the block checkout, WooCommerce has its own limit: WooCommerce > Settings > Advanced > Features > "Rate limiting Checkout block and Store API".', 'orderwarden' ); ?></li>
-			<li><?php esc_html_e( 'If it suits your store, turn off guest checkout in WooCommerce > Settings > Accounts & Privacy so bots must create an account first.', 'orderwarden' ); ?></li>
-			<li><?php esc_html_e( 'Keep WooCommerce and your payment plugin up to date.', 'orderwarden' ); ?></li>
-		</ol>
-		<?php
 	}
 }
