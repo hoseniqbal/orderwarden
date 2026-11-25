@@ -132,9 +132,8 @@ class OrderWarden_Logger {
 	public static function count_since( $event, $hours ) {
 		global $wpdb;
 		$since = gmdate( 'Y-m-d H:i:s', time() - ( (int) $hours * HOUR_IN_SECONDS ) );
-		$table = self::table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- custom table name is safe.
-		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE event = %s AND created_at >= %s", $event, $since ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table, live counts.
+		return (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i WHERE event = %s AND created_at >= %s', self::table(), $event, $since ) );
 	}
 
 	/**
@@ -145,9 +144,8 @@ class OrderWarden_Logger {
 	 */
 	public static function recent( $limit = 20 ) {
 		global $wpdb;
-		$table = self::table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- custom table name is safe.
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE event <> %s ORDER BY id DESC LIMIT %d", 'verified', (int) $limit ), ARRAY_A );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table, live list.
+		$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM %i WHERE event <> %s ORDER BY id DESC LIMIT %d', self::table(), 'verified', (int) $limit ), ARRAY_A );
 		return is_array( $rows ) ? $rows : array();
 	}
 
@@ -160,8 +158,7 @@ class OrderWarden_Logger {
 		global $wpdb;
 		$days  = (int) OrderWarden_Settings::get( 'log_retention_days' );
 		$until = gmdate( 'Y-m-d H:i:s', time() - ( $days * DAY_IN_SECONDS ) );
-		$table = self::table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- custom table name is safe.
-		$wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE created_at < %s", $until ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table cleanup.
+		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE created_at < %s', self::table(), $until ) );
 	}
 }
