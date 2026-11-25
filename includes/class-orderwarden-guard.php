@@ -121,6 +121,14 @@ class OrderWarden_Guard {
 			return true;
 		}
 
+		$status = OrderWarden_Token::verify( $token );
+
+		// A valid token proves the token script works on this checkout, whoever placed
+		// the order (including a shop manager placing a test order), so arm the channel.
+		if ( 'valid' === $status ) {
+			self::arm( $channel );
+		}
+
 		if ( current_user_can( 'manage_woocommerce' ) || OrderWarden_Request::is_allowlisted() ) {
 			return true;
 		}
@@ -137,9 +145,7 @@ class OrderWarden_Guard {
 			return 'velocity';
 		}
 
-		$status = OrderWarden_Token::verify( $token );
 		if ( 'valid' === $status ) {
-			self::arm( $channel );
 			OrderWarden_Logger::log( 'verified', '', $channel );
 			return true;
 		}
