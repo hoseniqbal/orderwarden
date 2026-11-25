@@ -13,7 +13,7 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       orderwarden
  * WC requires at least: 7.0
- * WC tested up to:   10.8
+ * WC tested up to:   11.3
  *
  * @package OrderWarden
  */

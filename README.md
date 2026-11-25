@@ -51,6 +51,27 @@ tests/attack-sim.sh                  curl bot simulation for a local store
 9. Cleanup: create failed orders (declined card) → Cleanup tab → Move to Trash → count goes to 0.
 10. Run **Plugin Check** (PCP) → zero errors.
 
+## Test results (25 Nov 2026, SiteGround test site, WP 7.1.5, WooCommerce 11.3.1)
+
+| Test | Result |
+|---|---|
+| Activate plugin, open dashboard | OK, no errors |
+| Learning mode: bot POST to Store API checkout | Allowed and logged as "Would block" |
+| Real order on block checkout (shop manager) | OK, block checkout switched to Protected |
+| Store API bot without token / with forged token | HTTP 403 `orderwarden_blocked`, no order created |
+| Real guest order on classic checkout (shortcode page) | OK (#287), classic switched to Protected |
+| Classic bot with WooCommerce nonce but no token | `result: failure`, generic message, no order created |
+| Real guest payment on Pay for order page | OK (#285), pay switched to Protected |
+| Pay for order bot without token | Error notice, order stayed `pending` |
+| 2 failed orders from one IP (limit set to 2) | Next checkout HTTP 403 "Too many failed payments", even with a valid token; released after the block time |
+| Valid token from a guest after release | OK (#286) |
+| Cleanup, guest only, move to Trash | Guest failed order trashed, customer failed order kept |
+| Plugin Check 2.2.0 (General, Plugin Repo, Security) | No errors, no warnings |
+
+Plugin Check's runtime categories (Performance, Accessibility) fail on SiteGround for every plugin (also Template Kit Import), so that is the host, not OrderWarden.
+
+Not yet tested: a real card gateway (Stripe test mode), express buttons on product pages, a page cache serving a logged-out checkout page.
+
 ## Before submitting to wordpress.org
 
 - [ ] Set `Contributors:` in `readme.txt` to the real wordpress.org username(s).

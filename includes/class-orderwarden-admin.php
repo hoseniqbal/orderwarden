@@ -324,6 +324,7 @@ class OrderWarden_Admin {
 		$s    = OrderWarden_Settings::all();
 		$name = OrderWarden_Settings::OPTION;
 		?>
+		<?php settings_errors(); ?>
 		<form method="post" action="options.php">
 			<?php settings_fields( 'orderwarden' ); ?>
 			<table class="form-table" role="presentation">
