@@ -407,3 +407,43 @@
 	.orderwarden-switch input[type="checkbox"],
 	.orderwarden-switch input[type="checkbox"]::before { transition: none; }
 }
+
+/* Pro features */
+.orderwarden-tabs a.orderwarden-tab-pro { margin-left: auto; color: var(--ow-pine); }
+.orderwarden-tabs a.orderwarden-tab-pro:hover,
+.orderwarden-tabs a.orderwarden-tab-pro[aria-current="page"] { color: var(--ow-pine-dark); }
+.orderwarden-pro {
+	display: grid;
+	grid-template-columns: 200px minmax(0, 1fr);
+	gap: 24px;
+	align-items: start;
+}
+.orderwarden-pro-nav { display: flex; flex-direction: column; gap: 2px; }
+.orderwarden-pro-nav a {
+	padding: 8px 12px;
+	border-radius: 6px;
+	color: var(--ow-text);
+	font-weight: 500;
+	text-decoration: none;
+}
+.orderwarden-pro-nav a:hover { background: #eef1f4; color: var(--ow-ink); }
+.orderwarden-pro-nav a[aria-current="page"] { background: var(--ow-pine-tint); color: var(--ow-pine-dark); }
+.orderwarden-pro-intro { margin: 0; font-size: 15px; color: var(--ow-ink); }
+.orderwarden-pro-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 16px 20px;
+	border-top: 1px solid var(--ow-line);
+	background: #f8fafb;
+	border-radius: 0 0 8px 8px;
+}
+.orderwarden-pro-foot p { margin: 0; color: var(--ow-muted); }
+.orderwarden-tag.is-soon { background: var(--ow-amber-tint); color: var(--ow-amber); }
+.orderwarden-tag.is-pro { background: var(--ow-pine); color: #fff; }
+@media (max-width: 782px) {
+	.orderwarden-pro { grid-template-columns: 1fr; }
+	.orderwarden-pro-nav { flex-direction: row; flex-wrap: wrap; }
+	.orderwarden-pro-foot { flex-direction: column; align-items: flex-start; }
+}

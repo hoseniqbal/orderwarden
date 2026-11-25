@@ -26,6 +26,8 @@ class OrderWarden_Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 60 );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'menu_style' ) );
+		add_filter( 'submenu_file', array( __CLASS__, 'submenu_file' ) );
 		add_action( 'admin_post_orderwarden_cleanup_start', array( __CLASS__, 'handle_cleanup_start' ) );
 		add_action( 'admin_post_orderwarden_cleanup_cancel', array( __CLASS__, 'handle_cleanup_cancel' ) );
 		add_filter( 'option_page_capability_orderwarden', array( __CLASS__, 'settings_capability' ) );
@@ -86,6 +88,142 @@ class OrderWarden_Admin {
 			$icon,
 			56
 		);
+
+		add_submenu_page( self::PAGE, __( 'Overview', 'orderwarden' ), __( 'Overview', 'orderwarden' ), self::CAP, self::PAGE, array( __CLASS__, 'render' ) );
+		foreach ( self::free_tabs() as $key => $label ) {
+			if ( 'overview' === $key ) {
+				continue;
+			}
+			add_submenu_page( self::PAGE, $label, $label, self::CAP, self::menu_slug( $key ) );
+		}
+		foreach ( self::pro_features() as $key => $feature ) {
+			add_submenu_page(
+				self::PAGE,
+				$feature['title'],
+				esc_html( $feature['menu'] ) . ' <span class="orderwarden-menu-pro">' . esc_html__( 'Pro', 'orderwarden' ) . '</span>',
+				self::CAP,
+				self::menu_slug( 'pro-' . $key )
+			);
+		}
+	}
+
+	/**
+	 * Submenu slug that links straight to a tab.
+	 *
+	 * @param string $tab Tab.
+	 * @return string
+	 */
+	private static function menu_slug( $tab ) {
+		return 'admin.php?page=' . self::PAGE . '&tab=' . $tab;
+	}
+
+	/**
+	 * Highlight the submenu item of the open tab.
+	 *
+	 * @param string|null $submenu_file Current submenu file.
+	 * @return string|null
+	 */
+	public static function submenu_file( $submenu_file ) {
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- menu highlight only.
+		if ( self::PAGE !== $page ) {
+			return $submenu_file;
+		}
+		$tab = self::current_tab();
+		return 'overview' === $tab ? self::PAGE : self::menu_slug( $tab );
+	}
+
+	/**
+	 * Small style for the Pro label in the admin menu, on every admin screen.
+	 *
+	 * @return void
+	 */
+	public static function menu_style() {
+		wp_register_style( 'orderwarden-menu', false, array(), ORDERWARDEN_VERSION );
+		wp_enqueue_style( 'orderwarden-menu' );
+		wp_add_inline_style( 'orderwarden-menu', '#adminmenu .orderwarden-menu-pro{display:inline-block;margin-left:4px;padding:0 6px;border-radius:9px;background:#136f4d;color:#fff;font-size:10px;font-weight:600;line-height:17px;vertical-align:1px}' );
+	}
+
+	/**
+	 * Free sections.
+	 *
+	 * @return array
+	 */
+	private static function free_tabs() {
+		return array(
+			'overview'  => __( 'Overview', 'orderwarden' ),
+			'settings'  => __( 'Settings', 'orderwarden' ),
+			'cleanup'   => __( 'Failed orders', 'orderwarden' ),
+			'checklist' => __( 'Checklist', 'orderwarden' ),
+		);
+	}
+
+	/**
+	 * Link to buy Pro. Empty until the add-on is released, which shows "Coming soon".
+	 *
+	 * @return string
+	 */
+	public static function pro_url() {
+		return (string) apply_filters( 'orderwarden_pro_url', '' );
+	}
+
+	/**
+	 * Features of the paid add-on. None of this code ships in the free plugin.
+	 *
+	 * @return array
+	 */
+	private static function pro_features() {
+		return array(
+			'bans'    => array(
+				'menu'   => __( 'Auto bans', 'orderwarden' ),
+				'title'  => __( 'Automatic bans', 'orderwarden' ),
+				'intro'  => __( 'Addresses and emails that keep failing payments are banned for a while, then released on their own.', 'orderwarden' ),
+				'points' => array(
+					__( 'Ban by IP range, email and billing address, not only a single IP', 'orderwarden' ),
+					__( 'Bans lift by themselves after the time you choose', 'orderwarden' ),
+					__( 'A list of active bans you can clear with one click', 'orderwarden' ),
+				),
+			),
+			'alerts'  => array(
+				'menu'   => __( 'Instant alerts', 'orderwarden' ),
+				'title'  => __( 'Alerts where you already are', 'orderwarden' ),
+				'intro'  => __( 'Hear about an attack the minute it starts, on the app you check most.', 'orderwarden' ),
+				'points' => array(
+					__( 'Slack, WhatsApp and Telegram, as well as email', 'orderwarden' ),
+					__( 'One message per attack, not one per blocked order', 'orderwarden' ),
+					__( 'A short note when the attack is over', 'orderwarden' ),
+				),
+			),
+			'report'  => array(
+				'menu'   => __( 'Weekly report', 'orderwarden' ),
+				'title'  => __( 'Weekly report', 'orderwarden' ),
+				'intro'  => __( 'One email a week that shows what OrderWarden did for your store.', 'orderwarden' ),
+				'points' => array(
+					__( 'Blocked attempts by day and by checkout', 'orderwarden' ),
+					__( 'Roughly how much you saved in gateway fees', 'orderwarden' ),
+					__( 'Sent to you, your team or your client', 'orderwarden' ),
+				),
+			),
+			'history' => array(
+				'menu'   => __( 'Attack history', 'orderwarden' ),
+				'title'  => __( 'Full attack history', 'orderwarden' ),
+				'intro'  => __( 'Every blocked attempt, kept as long as you need it.', 'orderwarden' ),
+				'points' => array(
+					__( 'Filter by date, reason, checkout and IP', 'orderwarden' ),
+					__( 'Export to CSV for your records or your payment provider', 'orderwarden' ),
+					__( 'Charts that show when attacks start and stop', 'orderwarden' ),
+				),
+			),
+			'agency'  => array(
+				'menu'   => __( 'Many stores', 'orderwarden' ),
+				'title'  => __( 'One dashboard for many stores', 'orderwarden' ),
+				'intro'  => __( 'For agencies and owners with more than one shop.', 'orderwarden' ),
+				'points' => array(
+					__( 'See attacks across all your stores in one place', 'orderwarden' ),
+					__( 'Copy settings from one store to the others', 'orderwarden' ),
+					__( 'Priority email support from the developer', 'orderwarden' ),
+				),
+			),
+		);
 	}
 
 	/**
@@ -125,7 +263,10 @@ class OrderWarden_Admin {
 	 * @return string
 	 */
 	private static function current_tab() {
-		$tabs = array( 'overview', 'settings', 'cleanup', 'checklist', 'pro' );
+		$tabs = array_keys( self::free_tabs() );
+		foreach ( array_keys( self::pro_features() ) as $key ) {
+			$tabs[] = 'pro-' . $key;
+		}
 		$tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'overview'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- tab switch only.
 		return in_array( $tab, $tabs, true ) ? $tab : 'overview';
 	}
@@ -175,13 +316,9 @@ class OrderWarden_Admin {
 			return;
 		}
 		$tab  = self::current_tab();
-		$tabs = array(
-			'overview'  => __( 'Overview', 'orderwarden' ),
-			'settings'  => __( 'Settings', 'orderwarden' ),
-			'cleanup'   => __( 'Failed orders', 'orderwarden' ),
-			'checklist' => __( 'Checklist', 'orderwarden' ),
-			'pro'       => __( 'Pro', 'orderwarden' ),
-		);
+		$tabs   = self::free_tabs();
+		$is_pro = 0 === strpos( $tab, 'pro-' );
+		$first  = 'pro-' . key( self::pro_features() );
 		?>
 		<div class="wrap orderwarden">
 			<div class="orderwarden-header">
@@ -194,6 +331,7 @@ class OrderWarden_Admin {
 				<?php foreach ( $tabs as $key => $label ) : ?>
 					<a href="<?php echo esc_url( self::url( $key ) ); ?>"<?php echo $key === $tab ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
 				<?php endforeach; ?>
+				<a class="orderwarden-tab-pro" href="<?php echo esc_url( self::url( $first ) ); ?>"<?php echo $is_pro ? ' aria-current="page"' : ''; ?>><?php esc_html_e( 'Pro features', 'orderwarden' ); ?></a>
 			</nav>
 			<hr class="wp-header-end">
 
@@ -208,11 +346,12 @@ class OrderWarden_Admin {
 				case 'checklist':
 					self::render_checklist();
 					break;
-				case 'pro':
-					self::render_pro();
-					break;
 				default:
-					self::render_overview();
+					if ( $is_pro ) {
+						self::render_pro( substr( $tab, 4 ) );
+					} else {
+						self::render_overview();
+					}
 			}
 			?>
 		</div>
@@ -427,7 +566,7 @@ class OrderWarden_Admin {
 
 		<p class="orderwarden-footnote">
 			<?php esc_html_e( 'OrderWarden Pro is on the way, with automatic bans, Slack and WhatsApp alerts and a weekly report.', 'orderwarden' ); ?>
-			<a class="orderwarden-link" href="<?php echo esc_url( self::url( 'pro' ) ); ?>"><?php esc_html_e( 'See what is coming', 'orderwarden' ); ?></a>
+			<a class="orderwarden-link" href="<?php echo esc_url( self::url( 'pro-bans' ) ); ?>"><?php esc_html_e( 'See what is coming', 'orderwarden' ); ?></a>
 		</p>
 		<?php
 	}
@@ -842,54 +981,57 @@ class OrderWarden_Admin {
 
 
 	/**
-	 * Pro tab: what the paid add-on will add. Nothing in the free plugin is locked.
+	 * Page for one Pro feature: what it does and when it is available.
+	 * Nothing here is locked code; the feature itself ships only in the paid add-on.
 	 *
+	 * @param string $current Feature key.
 	 * @return void
 	 */
-	private static function render_pro() {
-		$features = array(
-			array(
-				'title' => __( 'Automatic bans', 'orderwarden' ),
-				'tip'   => __( 'Addresses and emails that keep failing payments are banned for a while, then released on their own.', 'orderwarden' ),
-			),
-			array(
-				'title' => __( 'Alerts where you already are', 'orderwarden' ),
-				'tip'   => __( 'Attack alerts on Slack, WhatsApp and Telegram, not only email.', 'orderwarden' ),
-			),
-			array(
-				'title' => __( 'Weekly report', 'orderwarden' ),
-				'tip'   => __( 'One email a week: what was blocked, which checkout was targeted and roughly how much in gateway fees you saved.', 'orderwarden' ),
-			),
-			array(
-				'title' => __( 'Full attack history', 'orderwarden' ),
-				'tip'   => __( 'Every blocked attempt with filters and a CSV export, for your records or your payment provider.', 'orderwarden' ),
-			),
-			array(
-				'title' => __( 'One dashboard for many stores', 'orderwarden' ),
-				'tip'   => __( 'For agencies: see attacks across all the stores you look after in one place.', 'orderwarden' ),
-			),
-			array(
-				'title' => __( 'Priority support', 'orderwarden' ),
-				'tip'   => __( 'Help from the developer by email when your store is under attack.', 'orderwarden' ),
-			),
-		);
+	private static function render_pro( $current ) {
+		$features = self::pro_features();
+		if ( ! isset( $features[ $current ] ) ) {
+			$current = key( $features );
+		}
+		$feature = $features[ $current ];
+		$buy     = self::pro_url();
 		?>
-		<section class="orderwarden-panel">
-			<div class="orderwarden-panel-head">
-				<h2><?php esc_html_e( 'OrderWarden Pro', 'orderwarden' ); ?></h2>
-				<p><?php esc_html_e( 'Coming soon as a separate add-on', 'orderwarden' ); ?></p>
-			</div>
-			<div class="orderwarden-panel-body">
-				<p class="orderwarden-help"><?php esc_html_e( 'Everything you use today stays free, with no limits. Pro adds tools for busy stores and agencies on top.', 'orderwarden' ); ?></p>
-			</div>
-			<ul class="orderwarden-checklist">
-				<?php foreach ( $features as $item ) : ?>
-					<li><?php self::check_icon(); ?><div><strong><?php echo esc_html( $item['title'] ); ?></strong><p><?php echo esc_html( $item['tip'] ); ?></p></div></li>
+		<div class="orderwarden-pro">
+			<nav class="orderwarden-pro-nav" aria-label="<?php esc_attr_e( 'Pro features', 'orderwarden' ); ?>">
+				<?php foreach ( $features as $key => $item ) : ?>
+					<a href="<?php echo esc_url( self::url( 'pro-' . $key ) ); ?>"<?php echo $key === $current ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $item['menu'] ); ?></a>
 				<?php endforeach; ?>
-			</ul>
-		</section>
+			</nav>
+
+			<section class="orderwarden-panel">
+				<div class="orderwarden-panel-head">
+					<h2><?php echo esc_html( $feature['title'] ); ?></h2>
+					<?php if ( '' === $buy ) : ?>
+						<span class="orderwarden-tag is-soon"><?php esc_html_e( 'Coming soon', 'orderwarden' ); ?></span>
+					<?php else : ?>
+						<span class="orderwarden-tag is-pro"><?php esc_html_e( 'Pro', 'orderwarden' ); ?></span>
+					<?php endif; ?>
+				</div>
+				<div class="orderwarden-panel-body">
+					<p class="orderwarden-pro-intro"><?php echo esc_html( $feature['intro'] ); ?></p>
+				</div>
+				<ul class="orderwarden-checklist">
+					<?php foreach ( $feature['points'] as $point ) : ?>
+						<li><?php self::check_icon(); ?><div><p><?php echo esc_html( $point ); ?></p></div></li>
+					<?php endforeach; ?>
+				</ul>
+				<div class="orderwarden-pro-foot">
+					<?php if ( '' === $buy ) : ?>
+						<p><?php esc_html_e( 'This is part of OrderWarden Pro, a separate add-on that is not out yet. Everything you use today stays free, with no limits.', 'orderwarden' ); ?></p>
+					<?php else : ?>
+						<p><?php esc_html_e( 'Part of OrderWarden Pro, a separate add-on. Everything you use today stays free, with no limits.', 'orderwarden' ); ?></p>
+						<a class="button button-primary" href="<?php echo esc_url( $buy ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Get OrderWarden Pro', 'orderwarden' ); ?></a>
+					<?php endif; ?>
+				</div>
+			</section>
+		</div>
 		<?php
 	}
+
 	/**
 	 * Start cleanup (admin-post).
 	 *
