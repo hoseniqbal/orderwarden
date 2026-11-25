@@ -365,6 +365,21 @@
 .orderwarden select:focus,
 .orderwarden textarea:focus { border-color: var(--ow-pine); box-shadow: 0 0 0 3px rgba(18, 112, 76, .15); }
 
+/* File picker */
+.orderwarden input[type="file"] { font-size: 16px; color: var(--ow-muted); }
+.orderwarden input[type="file"]::file-selector-button {
+	margin-right: 14px;
+	padding: 10px 18px;
+	border-radius: 10px;
+	border: 1px solid #cdd7d2;
+	background: #fff;
+	color: var(--ow-ink);
+	font-size: 16px;
+	font-weight: 700;
+	cursor: pointer;
+}
+.orderwarden input[type="file"]::file-selector-button:hover { border-color: var(--ow-pine); color: var(--ow-pine-dark); }
+
 /* Switch */
 .orderwarden-switch { display: inline-flex; align-items: center; gap: 12px; cursor: pointer; color: var(--ow-ink); font-size: 16px; font-weight: 600; }
 .orderwarden-switch input[type="checkbox"] {
@@ -450,7 +465,8 @@
 	border-top: 1px solid var(--ow-line);
 	background: var(--ow-soft);
 }
-form > .orderwarden-actions { border: 1px solid var(--ow-line); border-radius: var(--ow-radius); margin-bottom: 24px; box-shadow: var(--ow-shadow); background: #fff; }
+.orderwarden > form > .orderwarden-actions { border: 1px solid var(--ow-line); border-radius: var(--ow-radius); margin-bottom: 24px; box-shadow: var(--ow-shadow); background: #fff; }
+.orderwarden-panel-body .orderwarden-actions { padding: 0; margin-top: 20px; border: 0; border-radius: 0; background: none; box-shadow: none; }
 
 .orderwarden-link { color: var(--ow-pine); font-weight: 700; text-decoration: none; }
 .orderwarden-link:hover { color: var(--ow-pine-dark); text-decoration: underline; }

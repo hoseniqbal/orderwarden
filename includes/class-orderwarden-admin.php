@@ -158,6 +158,15 @@ class OrderWarden_Admin {
 	}
 
 	/**
+	 * Whether OrderWarden Pro is installed and active.
+	 *
+	 * @return bool
+	 */
+	private static function pro_installed() {
+		return (bool) apply_filters( 'orderwarden_pro_active', class_exists( 'OWP_Plugin' ) );
+	}
+
+	/**
 	 * Link to buy Pro. Empty until the add-on is released, which shows "Coming soon".
 	 *
 	 * @return string
@@ -336,7 +345,11 @@ class OrderWarden_Admin {
 						<a href="<?php echo esc_url( self::url( $key ) ); ?>"<?php echo $key === $tab ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
 					<?php endforeach; ?>
 					<span class="ow-tab-gap" aria-hidden="true"></span>
-					<a class="ow-tab-pro" href="<?php echo esc_url( self::url( $first ) ); ?>"<?php echo $is_pro ? ' aria-current="page"' : ''; ?>><?php esc_html_e( 'Pro features', 'orderwarden' ); ?></a>
+					<?php if ( self::pro_installed() ) : ?>
+						<a class="ow-tab-pro" href="<?php echo esc_url( admin_url( 'admin.php?page=orderwarden-pro-bans' ) ); ?>"><?php esc_html_e( 'Pro tools', 'orderwarden' ); ?></a>
+					<?php else : ?>
+						<a class="ow-tab-pro" href="<?php echo esc_url( self::url( $first ) ); ?>"<?php echo $is_pro ? ' aria-current="page"' : ''; ?>><?php esc_html_e( 'Pro features', 'orderwarden' ); ?></a>
+					<?php endif; ?>
 				</nav>
 			</div>
 			<hr class="wp-header-end">
@@ -573,10 +586,12 @@ class OrderWarden_Admin {
 			<?php endif; ?>
 		</section>
 
+		<?php if ( ! self::pro_installed() ) : ?>
 		<div class="orderwarden-footnote">
 			<span><?php esc_html_e( 'OrderWarden Pro adds automatic bans, Slack, Discord and Telegram alerts, and a weekly report.', 'orderwarden' ); ?></span>
 			<a class="button ow-btn-gold" href="<?php echo esc_url( self::url( 'pro-bans' ) ); ?>"><?php esc_html_e( 'See Pro features', 'orderwarden' ); ?></a>
 		</div>
+		<?php endif; ?>
 		<?php
 	}
 
