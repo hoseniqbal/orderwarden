@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       OrderWarden – Stop Card Testing & Fake Orders for WooCommerce
- * Plugin URI:        https://github.com/WordPress-Satkhira-Community/orderwarden
+ * Plugin URI:        https://github.com/hoseniqbal/orderwarden
  * Description:       Stops card-testing bots and fake orders at the WooCommerce checkout without CAPTCHA, and cleans up thousands of failed orders in one click. Works with every payment gateway.
  * Version:           1.0.0
  * Requires at least: 6.2
