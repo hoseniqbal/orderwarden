@@ -1,5 +1,5 @@
 === OrderWarden: Stop Card Testing & Fake Orders for WooCommerce ===
-Contributors: hoseniqbal
+Contributors: iqbal511138
 Tags: card testing, fake orders, woocommerce fraud, checkout protection, anti-fraud
 Requires at least: 6.2
 Tested up to: 7.1
@@ -76,6 +76,10 @@ Add `add_filter( 'orderwarden_load_script', '__return_true' );` to load the toke
 = What does the cleanup remove? =
 
 Only orders with the status "Failed". You choose guest orders only or all, an optional minimum age, and Trash or permanent deletion.
+
+= Is there a Pro version? =
+
+A separate Pro add-on is planned, with automatic bans, Slack, WhatsApp and Telegram alerts, a weekly report, full attack history and a dashboard for many stores. Its pages appear in the OrderWarden menu marked "Pro" and say "Coming soon" until it is released. Nothing in this free plugin is locked or limited.
 
 == Screenshots ==
 
