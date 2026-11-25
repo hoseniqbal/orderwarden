@@ -1,0 +1,9 @@
+.git
+.gitignore
+.distignore
+README.md
+tests
+node_modules
+vendor
+composer.json
+composer.lock
