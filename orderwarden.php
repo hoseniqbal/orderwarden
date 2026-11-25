@@ -37,6 +37,7 @@ require_once ORDERWARDEN_PATH . 'includes/class-orderwarden-velocity.php';
 require_once ORDERWARDEN_PATH . 'includes/class-orderwarden-guard.php';
 require_once ORDERWARDEN_PATH . 'includes/class-orderwarden-cleaner.php';
 require_once ORDERWARDEN_PATH . 'includes/class-orderwarden-admin.php';
+require_once ORDERWARDEN_PATH . 'includes/class-orderwarden-notices.php';
 require_once ORDERWARDEN_PATH . 'includes/class-orderwarden-plugin.php';
 
 register_activation_hook( __FILE__, array( 'OrderWarden_Plugin', 'activate' ) );

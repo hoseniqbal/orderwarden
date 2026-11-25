@@ -55,6 +55,7 @@ class OrderWarden_Plugin {
 
 		if ( is_admin() ) {
 			OrderWarden_Admin::init();
+			OrderWarden_Notices::init();
 		}
 	}
 
@@ -77,6 +78,7 @@ class OrderWarden_Plugin {
 	 */
 	public static function activate() {
 		OrderWarden_Logger::install();
+		OrderWarden_Notices::installed_at();
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', self::CRON_HOOK );
 		}

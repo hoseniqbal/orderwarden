@@ -25,7 +25,7 @@ function orderwarden_uninstall_current_site() {
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- removing our own table on uninstall.
 	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . 'orderwarden_events' ) );
 
-	foreach ( array( 'orderwarden_settings', 'orderwarden_secret', 'orderwarden_stats', 'orderwarden_armed', 'orderwarden_cleanup', 'orderwarden_db_version' ) as $option ) {
+	foreach ( array( 'orderwarden_settings', 'orderwarden_secret', 'orderwarden_stats', 'orderwarden_armed', 'orderwarden_cleanup', 'orderwarden_db_version', 'orderwarden_review', 'orderwarden_installed' ) as $option ) {
 		delete_option( $option );
 	}
 	delete_transient( 'orderwarden_alert_sent' );

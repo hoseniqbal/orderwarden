@@ -74,13 +74,17 @@ class OrderWarden_Admin {
 	 * @return void
 	 */
 	public static function menu() {
-		add_submenu_page(
-			'woocommerce',
+		$icon = 'data:image/svg+xml;base64,' . base64_encode( // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- menu icon.
+			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="black" d="M10 1.5 2.8 4.2v5.2c0 4.4 3 7.7 7.2 8.9 4.2-1.2 7.2-4.5 7.2-8.9V4.2L10 1.5Zm-1 11.3L5.7 9.5l1.2-1.2L9 10.4l4.2-4.3 1.2 1.2L9 12.8Z"/></svg>'
+		);
+		add_menu_page(
 			__( 'OrderWarden', 'orderwarden' ),
 			__( 'OrderWarden', 'orderwarden' ),
 			self::CAP,
 			self::PAGE,
-			array( __CLASS__, 'render' )
+			array( __CLASS__, 'render' ),
+			$icon,
+			56
 		);
 	}
 
@@ -121,7 +125,7 @@ class OrderWarden_Admin {
 	 * @return string
 	 */
 	private static function current_tab() {
-		$tabs = array( 'overview', 'settings', 'cleanup', 'checklist' );
+		$tabs = array( 'overview', 'settings', 'cleanup', 'checklist', 'pro' );
 		$tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'overview'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- tab switch only.
 		return in_array( $tab, $tabs, true ) ? $tab : 'overview';
 	}
@@ -176,6 +180,7 @@ class OrderWarden_Admin {
 			'settings'  => __( 'Settings', 'orderwarden' ),
 			'cleanup'   => __( 'Failed orders', 'orderwarden' ),
 			'checklist' => __( 'Checklist', 'orderwarden' ),
+			'pro'       => __( 'Pro', 'orderwarden' ),
 		);
 		?>
 		<div class="wrap orderwarden">
@@ -202,6 +207,9 @@ class OrderWarden_Admin {
 					break;
 				case 'checklist':
 					self::render_checklist();
+					break;
+				case 'pro':
+					self::render_pro();
 					break;
 				default:
 					self::render_overview();
@@ -416,6 +424,11 @@ class OrderWarden_Admin {
 				</table>
 			<?php endif; ?>
 		</section>
+
+		<p class="orderwarden-footnote">
+			<?php esc_html_e( 'OrderWarden Pro is on the way, with automatic bans, Slack and WhatsApp alerts and a weekly report.', 'orderwarden' ); ?>
+			<a class="orderwarden-link" href="<?php echo esc_url( self::url( 'pro' ) ); ?>"><?php esc_html_e( 'See what is coming', 'orderwarden' ); ?></a>
+		</p>
 		<?php
 	}
 
@@ -827,6 +840,56 @@ class OrderWarden_Admin {
 		<?php
 	}
 
+
+	/**
+	 * Pro tab: what the paid add-on will add. Nothing in the free plugin is locked.
+	 *
+	 * @return void
+	 */
+	private static function render_pro() {
+		$features = array(
+			array(
+				'title' => __( 'Automatic bans', 'orderwarden' ),
+				'tip'   => __( 'Addresses and emails that keep failing payments are banned for a while, then released on their own.', 'orderwarden' ),
+			),
+			array(
+				'title' => __( 'Alerts where you already are', 'orderwarden' ),
+				'tip'   => __( 'Attack alerts on Slack, WhatsApp and Telegram, not only email.', 'orderwarden' ),
+			),
+			array(
+				'title' => __( 'Weekly report', 'orderwarden' ),
+				'tip'   => __( 'One email a week: what was blocked, which checkout was targeted and roughly how much in gateway fees you saved.', 'orderwarden' ),
+			),
+			array(
+				'title' => __( 'Full attack history', 'orderwarden' ),
+				'tip'   => __( 'Every blocked attempt with filters and a CSV export, for your records or your payment provider.', 'orderwarden' ),
+			),
+			array(
+				'title' => __( 'One dashboard for many stores', 'orderwarden' ),
+				'tip'   => __( 'For agencies: see attacks across all the stores you look after in one place.', 'orderwarden' ),
+			),
+			array(
+				'title' => __( 'Priority support', 'orderwarden' ),
+				'tip'   => __( 'Help from the developer by email when your store is under attack.', 'orderwarden' ),
+			),
+		);
+		?>
+		<section class="orderwarden-panel">
+			<div class="orderwarden-panel-head">
+				<h2><?php esc_html_e( 'OrderWarden Pro', 'orderwarden' ); ?></h2>
+				<p><?php esc_html_e( 'Coming soon as a separate add-on', 'orderwarden' ); ?></p>
+			</div>
+			<div class="orderwarden-panel-body">
+				<p class="orderwarden-help"><?php esc_html_e( 'Everything you use today stays free, with no limits. Pro adds tools for busy stores and agencies on top.', 'orderwarden' ); ?></p>
+			</div>
+			<ul class="orderwarden-checklist">
+				<?php foreach ( $features as $item ) : ?>
+					<li><?php self::check_icon(); ?><div><strong><?php echo esc_html( $item['title'] ); ?></strong><p><?php echo esc_html( $item['tip'] ); ?></p></div></li>
+				<?php endforeach; ?>
+			</ul>
+		</section>
+		<?php
+	}
 	/**
 	 * Start cleanup (admin-post).
 	 *

@@ -386,6 +386,10 @@
 .orderwarden-checklist p { margin: 2px 0 0; max-width: 68ch; }
 .orderwarden-checklist svg { margin-top: 3px; color: var(--ow-pine); }
 
+/* Footnote under the overview */
+.orderwarden-footnote { margin: -8px 0 24px; color: var(--ow-muted); font-size: 13px; }
+.orderwarden-footnote .orderwarden-link { margin-left: 4px; }
+
 /* WordPress notices inside our page */
 .orderwarden .notice { margin: 0 0 20px; border-radius: 6px; }
 
