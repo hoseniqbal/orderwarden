@@ -307,7 +307,7 @@ class OrderWarden_Guard {
 			'orderwarden-token',
 			ORDERWARDEN_URL . 'assets/js/orderwarden-token.js',
 			array(),
-			ORDERWARDEN_VERSION,
+			ORDERWARDEN_VERSION . '.' . (int) filemtime( ORDERWARDEN_PATH . 'assets/js/orderwarden-token.js' ),
 			false // In the head, so it is in place before checkout scripts send requests.
 		);
 		wp_localize_script(

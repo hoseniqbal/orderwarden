@@ -94,7 +94,8 @@ class OrderWarden_Admin {
 		if ( false === strpos( (string) $hook, self::PAGE ) ) {
 			return;
 		}
-		wp_enqueue_style( 'orderwarden-admin', ORDERWARDEN_URL . 'assets/css/admin.css', array(), ORDERWARDEN_VERSION );
+		$file = ORDERWARDEN_PATH . 'assets/css/admin.css';
+		wp_enqueue_style( 'orderwarden-admin', ORDERWARDEN_URL . 'assets/css/admin.css', array(), ORDERWARDEN_VERSION . '.' . (int) filemtime( $file ) );
 	}
 
 	/**
