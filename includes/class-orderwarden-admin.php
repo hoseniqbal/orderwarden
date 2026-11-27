@@ -26,7 +26,6 @@ class OrderWarden_Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ), 60 );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'menu_style' ) );
 		add_filter( 'submenu_file', array( __CLASS__, 'submenu_file' ) );
 		add_action( 'admin_post_orderwarden_cleanup_start', array( __CLASS__, 'handle_cleanup_start' ) );
 		add_action( 'admin_post_orderwarden_cleanup_cancel', array( __CLASS__, 'handle_cleanup_cancel' ) );
@@ -71,7 +70,7 @@ class OrderWarden_Admin {
 	}
 
 	/**
-	 * Menu entry under WooCommerce.
+	 * Admin menu entry.
 	 *
 	 * @return void
 	 */
@@ -95,15 +94,6 @@ class OrderWarden_Admin {
 				continue;
 			}
 			add_submenu_page( self::PAGE, $label, $label, self::CAP, self::menu_slug( $key ) );
-		}
-		foreach ( self::pro_features() as $key => $feature ) {
-			add_submenu_page(
-				self::PAGE,
-				$feature['title'],
-				esc_html( $feature['menu'] ) . ' <span class="orderwarden-menu-pro">' . esc_html__( 'Pro', 'orderwarden' ) . '</span>',
-				self::CAP,
-				self::menu_slug( 'pro-' . $key )
-			);
 		}
 	}
 
@@ -129,18 +119,10 @@ class OrderWarden_Admin {
 			return $submenu_file;
 		}
 		$tab = self::current_tab();
-		return 'overview' === $tab ? self::PAGE : self::menu_slug( $tab );
-	}
-
-	/**
-	 * Small style for the Pro label in the admin menu, on every admin screen.
-	 *
-	 * @return void
-	 */
-	public static function menu_style() {
-		wp_register_style( 'orderwarden-menu', false, array(), ORDERWARDEN_VERSION );
-		wp_enqueue_style( 'orderwarden-menu' );
-		wp_add_inline_style( 'orderwarden-menu', '#adminmenu .orderwarden-menu-pro{display:inline-block;margin-left:4px;padding:0 6px;border-radius:9px;background:#136f4d;color:#fff;font-size:10px;font-weight:600;line-height:17px;vertical-align:1px}' );
+		if ( 'overview' === $tab || 0 === strpos( $tab, 'pro-' ) ) {
+			return self::PAGE;
+		}
+		return self::menu_slug( $tab );
 	}
 
 	/**
